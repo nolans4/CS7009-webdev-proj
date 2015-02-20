@@ -1,0 +1,18 @@
+02-16 12:06:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "RECIPE" not found; SQL statement:
+select * from recipe [42102-176]
+02-16 12:08:19 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENT" not found; SQL statement:
+select * from ingredient [42102-176]
+02-16 12:14:45 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 12:31:49 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 14:29:04 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 14:46:56 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]

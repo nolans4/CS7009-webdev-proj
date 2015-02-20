@@ -1,0 +1,32 @@
+02-16 13:53:29 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 14:29:56 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 15:18:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 15:37:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 15:37:29 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Column "ingredient_id" not found [42122-176]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:344)
+	at org.h2.message.DbException.get(DbException.java:178)
+	at org.h2.message.DbException.get(DbException.java:154)
+	at org.h2.jdbc.JdbcResultSet.getColumnIndex(JdbcResultSet.java:3148)
+	at org.h2.jdbc.JdbcResultSet.get(JdbcResultSet.java:3210)
+	at org.h2.jdbc.JdbcResultSet.getLong(JdbcResultSet.java:670)
+	at hello.Application$1.mapRow(Application.java:48)
+	at hello.Application$1.mapRow(Application.java:1)
+	at org.springframework.jdbc.core.RowMapperResultSetExtractor.extractData(RowMapperResultSetExtractor.java:93)
+	at org.springframework.jdbc.core.RowMapperResultSetExtractor.extractData(RowMapperResultSetExtractor.java:60)
+	at org.springframework.jdbc.core.JdbcTemplate$1QueryStatementCallback.doInStatement(JdbcTemplate.java:457)
+	at org.springframework.jdbc.core.JdbcTemplate.execute(JdbcTemplate.java:402)
+	at org.springframework.jdbc.core.JdbcTemplate.query(JdbcTemplate.java:468)
+	at org.springframework.jdbc.core.JdbcTemplate.query(JdbcTemplate.java:478)
+	at hello.Application.main(Application.java:43)
+02-16 15:37:59 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]

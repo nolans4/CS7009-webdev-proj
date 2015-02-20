@@ -1,0 +1,6 @@
+02-16 14:31:02 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
+02-16 14:31:52 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Table "INGREDIENTS" not found; SQL statement:
+select * from ingredients [42102-176]
