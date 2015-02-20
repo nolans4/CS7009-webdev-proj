@@ -7,12 +7,15 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Properties;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -27,11 +30,17 @@ public class Application {
     	
         SimpleDriverDataSource dataSource = new SimpleDriverDataSource();
 
+        Properties properties = new Properties();
+        try {
+        	  properties.load(new FileInputStream("db.properties"));
+        	} catch (IOException e) {
+        	  e.getStackTrace();
+        	}
+        
         dataSource.setDriverClass(com.mysql.jdbc.Driver.class);
-        dataSource.setUsername("sarah");
-        dataSource.setUrl("jdbc:mysql://178.62.122.84:3306/RecipeApp");
-        dataSource.setPassword("ilovevogel"); //run
-         //ill find it      
+        dataSource.setUsername(properties.getProperty("db.username"));
+        dataSource.setUrl(properties.getProperty("db.url"));
+        dataSource.setPassword(properties.getProperty("db.password")); //run    
      /*   JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         	
         System.out.println("Querying for all recipes");

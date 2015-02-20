@@ -130,7 +130,7 @@ public class Controller {
     	    	
     }
     
-    @RequestMapping("/recipe")
+    @RequestMapping("/allrecipe")
     public String allRecipes(){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	
