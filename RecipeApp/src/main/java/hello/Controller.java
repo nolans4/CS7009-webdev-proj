@@ -116,7 +116,7 @@ public class Controller {
     	return newList.toString(); 	    	
     }
     
-    @RequestMapping("/fullrecipe")
+    @RequestMapping("/recipe")
     public String fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
@@ -137,12 +137,43 @@ public class Controller {
           });
    	
    	List<Recipe> newList = condenseFullRecipe(result);
-   	return newList.toString();     	
+   	return newList.toString();     	    	
+    }
+    
+    //http://localhost:8080/byingredients?ingredients=chicken,rice
+    @RequestMapping("/byingredients")
+    public String byIngredients(@RequestParam(value="ingredients", defaultValue="") final List<String> ingredients){
+    	int num_i = ingredients.size();
     	
+    	//first add the full match to start of list
+    	
+    	
+    	//then add any recipe that has all ingredients
+    	
+    	for(int i = 0; i<ingredients.size(); i++)
+    		System.out.println(ingredients.get(i));
+    	
+    	return ingredients.toString();
     	
     }
     
-    @RequestMapping("/allrecipe")
+    @RequestMapping("ingredients")
+    public String allIngredients(){
+      	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+         List<Ingredient> results = jdbcTemplate.query(
+                 "select * from ingredients",
+                 new RowMapper<Ingredient>() {
+                     @Override
+                     public Ingredient mapRow(ResultSet rs, int rowNum) throws SQLException { 
+                         return new Ingredient(0,rs.getString("ingredient_name"),"");
+                     }
+                 });   
+       	return results.toString();       	
+ 
+    }
+    
+    
+    @RequestMapping("/recipes")
     public String allRecipes(){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	

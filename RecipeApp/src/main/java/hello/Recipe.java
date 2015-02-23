@@ -10,6 +10,7 @@ public class Recipe implements Comparable<Recipe> {
     private int preptime;
     private List<Ingredient> ingredients;
     private List<RecipeStep> steps;
+    private int num_match;
 
     public Recipe(){
     	this.id = -1;
@@ -18,6 +19,7 @@ public class Recipe implements Comparable<Recipe> {
     	this.description = "";
         ingredients = new ArrayList<Ingredient>();
         steps = new ArrayList<RecipeStep>();
+        num_match = -1;
     }
     
     public Recipe(long id, String title, String description, int preptime, Ingredient i, RecipeStep s) {
@@ -31,6 +33,7 @@ public class Recipe implements Comparable<Recipe> {
         	ingredients.add(i);
         if(s!=null)
         	steps.add(s);
+        num_match =-1;
     }
     
     @Override
@@ -42,7 +45,29 @@ public class Recipe implements Comparable<Recipe> {
 		return 1; //greater than
     }
     
-    public Ingredient getFirstIngredient(){
+    @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (id ^ (id >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Recipe other = (Recipe) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+
+	public Ingredient getFirstIngredient(){
     	return ingredients.get(0);
     }
     
@@ -87,6 +112,10 @@ public class Recipe implements Comparable<Recipe> {
 	public void addStep(RecipeStep rs){
 		steps.add(rs);
 	}
+	
+	public String numMatch(){
+		return ",\n\"num_match\": "+this.num_match;	
+	}
 
 	
 	public String toString(){
@@ -106,7 +135,10 @@ public class Recipe implements Comparable<Recipe> {
 				result+=",";
 			result+="\n";
 		}
-		result+="\n]\n}";
+		result+="\n]";
+		if(num_match>=0)
+			result+=numMatch();
+		result+="\n}";
 		
 		return result;		
 	}

@@ -38,12 +38,28 @@ public class RecipeStep implements Comparable<RecipeStep> {
 	}
 	
 	@Override
-	public boolean equals(Object other){
-		RecipeStep o = (RecipeStep) other;
-		if(o.step == step && o.recipeId == recipeId)
+	public boolean equals(Object obj) {
+		if (this == obj)
 			return true;
-		return false;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RecipeStep other = (RecipeStep) obj;
+		if (recipeId != other.recipeId)
+			return false;
+		if (step != other.step)
+			return false;
+		return true;
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (int) (recipeId ^ (recipeId >>> 32));
+		result = prime * result + step;
+		return result;
+	}
 	
 }
