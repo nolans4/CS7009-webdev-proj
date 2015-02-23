@@ -74,9 +74,14 @@ public class Controller {
     		if(curr.compareTo(endOfList)==1){
     			newList.add(curr);
     		}else{
-    			endOfList.addIngredient(curr.getFirstIngredient());
-    			if(!endOfList.getAllSteps().contains(curr.getFirstStep())){
-    				endOfList.addStep(curr.getFirstStep());
+    			Ingredient next_i = curr.getFirstIngredient();
+    			RecipeStep next_s = curr.getFirstStep();
+    			if(!endOfList.getAllIngredients().contains(next_i)){
+    				endOfList.addIngredient(next_i);
+    				
+    			}
+    			if(!endOfList.getAllSteps().contains(next_s)){
+    				endOfList.addStep(next_s);
     			}
     		}	
     	}
@@ -97,7 +102,7 @@ public class Controller {
     public String getRecipeById(@RequestParam(value="id", defaultValue="0") final long id) {
     	//Get recipe
     	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    	 List<Recipe> result = jdbcTemplate.query("select * from recipe_with_ingredients where recipe_id = ?",
+    	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.recipe_with_ingredients where recipe_id = ?",
     	   new PreparedStatementSetter() {
              public void setValues(PreparedStatement ps) throws SQLException {
                  ps.setLong(1, id);
@@ -120,7 +125,7 @@ public class Controller {
     public String fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-   	 List<Recipe> result = jdbcTemplate.query("select * from full_recipe where recipe_id = ?",
+   	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.full_recipe where recipe_id = ?",
    	   new PreparedStatementSetter() {
             public void setValues(PreparedStatement ps) throws SQLException {
                 ps.setLong(1, id);
@@ -179,7 +184,7 @@ public class Controller {
     	
         System.out.println("Querying for all recipes");
         List<Recipe> results = jdbcTemplate.query(
-                "select * from recipe_with_ingredients",
+                "select * from RecipeApp.recipe_with_ingredients",
                 new RowMapper<Recipe>() {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -188,7 +193,7 @@ public class Controller {
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                                 rs.getString("description"), rs.getInt("cooking_time"),i,null);
                     }
-                });    	
+                });   
     	List<Recipe> newList = condenseRecipesIngredients(results);
     	
     	return newList.toString();
@@ -224,7 +229,27 @@ public class Controller {
 		}
 		
 		//will need to parse the ingredients and steps in too
-
+		String sql = "SELECT a.recipe_name, a.description, a.cooking_time"
+		+ "		FROM recipes a"
+		+ "		INNER JOIN"
+		+ "		(SELECT f.recipe_id"
+		+ "			FROM recipes AS f"
+		+ "			JOIN recipes_ingredients AS g"
+		+ "			ON f.recipe_id = g.recipe_id"
+		+ "			JOIN ingredients AS h"
+		+ "			ON g.ingredient_id = h.ingredient_id"
+		+ "			WHERE h.ingredient_name = '?'"
+		+ "			) b ON a.recipe_id=b.recipe_id "
+		+ "		INNER JOIN"
+		+ "		(SELECT f.recipe_id"
+		+ "			FROM recipes AS f"
+		+ "			JOIN recipes_ingredients AS g"
+		+ "			ON f.recipe_id = g.recipe_id"
+		+ "			JOIN ingredients AS h"
+		+ "			ON g.ingredient_id = h.ingredient_id"
+		+ "			WHERE h.ingredient_name = \'?\'"
+		+ "		) c ON b.recipe_id=c.recipe_id"
+		+ "		GROUP BY a.recipe_id";
 		
     	
     	return new ResponseEntity<String>(recipe, HttpStatus.OK);

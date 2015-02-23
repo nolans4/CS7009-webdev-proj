@@ -1,6 +1,6 @@
 package hello;
 
-public class Ingredient {
+public class Ingredient implements Comparable<Ingredient> {
 	private final long id;
 	private final String name;
 	private final String amount;
@@ -14,6 +14,7 @@ public class Ingredient {
 	public long getId() {
 		return id;
 	}
+	
 
 	@Override
 	public int hashCode() {
@@ -27,26 +28,24 @@ public class Ingredient {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Ingredient other = (Ingredient) obj;
-		if (amount == null) {
-			if (other.amount != null)
-				return false;
-		} else if (!amount.equals(other.amount))
-			return false;
-		if (id != other.id)
-			return false;
-		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+		Ingredient o = (Ingredient) obj;
+		if(this.id == o.id && this.amount.equals(o.amount) && this.name.equals(o.name))
+				return true;
+		return false;
+	}
+
+	@Override
+	public int compareTo(Ingredient o) {
+		// TODO Auto-generated method stub
+		if(id==o.id&&this.amount.equals(o.amount)&&this.name.equals(o.name))
+			return 0;
+		if(id==o.id&&!this.amount.equals(o.amount))
+			return 1;
+		return -1;
+	}
+	
+	public String getAmount(){
+		return this.amount;
 	}
 
 	public String getName() {
