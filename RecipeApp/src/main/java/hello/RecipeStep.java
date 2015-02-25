@@ -5,6 +5,12 @@ public class RecipeStep implements Comparable<RecipeStep> {
 	private final long recipeId;
 	private final String description;
 	
+	public RecipeStep(){
+		this.recipeId = -1;
+		this.step = 0;
+		this.description = "";
+	}
+	
 	public RecipeStep(long recipeId, int step, String description){
 		this.recipeId = recipeId;
 		this.step = step;

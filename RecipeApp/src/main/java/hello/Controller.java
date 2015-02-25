@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -76,11 +77,11 @@ public class Controller {
     		}else{
     			Ingredient next_i = curr.getFirstIngredient();
     			RecipeStep next_s = curr.getFirstStep();
-    			if(!endOfList.getAllIngredients().contains(next_i)){
+    			if(!endOfList.getIngredients().contains(next_i)){
     				endOfList.addIngredient(next_i);
     				
     			}
-    			if(!endOfList.getAllSteps().contains(next_s)){
+    			if(!endOfList.getSteps().contains(next_s)){
     				endOfList.addStep(next_s);
     			}
     		}	
@@ -147,7 +148,29 @@ public class Controller {
     @RequestMapping("/byingredients")
     public String byIngredients(@RequestParam(value="ingredients", defaultValue="") final List<String> ingredients){
     	int num_i = ingredients.size();
-    	
+		String sql = "SELECT a.recipe_name, a.description, a.cooking_time"
+		+ "		FROM RecipeApp.recipes a"
+		+ "		INNER JOIN"
+		+ "		(SELECT f.recipe_id"
+		+ "			FROM RecipeApp.recipes AS f"
+		+ "			JOIN RecipeApp.recipes_ingredients AS g"
+		+ "			ON f.recipe_id = g.recipe_id"
+		+ "			JOIN RecipeApp.ingredients AS h"
+		+ "			ON g.ingredient_id = h.ingredient_id"
+		+ "			WHERE h.ingredient_name = '?'"
+		+ "			) b ON a.recipe_id=b.recipe_id "
+		+ "		INNER JOIN"
+		+ "		(SELECT f.recipe_id"
+		+ "			FROM RecipeApp.recipes AS f"
+		+ "			JOIN RecipeApp.recipes_ingredients AS g"
+		+ "			ON f.recipe_id = g.recipe_id"
+		+ "			JOIN ingredients AS h"
+		+ "			ON g.ingredient_id = h.ingredient_id"
+		+ "			WHERE h.ingredient_name = \'?\'"
+		+ "		) c ON b.recipe_id=c.recipe_id"
+		+ "		GROUP BY a.recipe_id";
+		
+    	    	
     	//first add the full match to start of list
     	
     	
@@ -211,7 +234,7 @@ public class Controller {
     	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
     	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
-    	
+    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     	Recipe r=null;
 		try {
 			r = mapper.readValue(recipe, Recipe.class);
@@ -226,32 +249,10 @@ public class Controller {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		//System.out.println(r.toString());
 		//will need to parse the ingredients and steps in too
-		String sql = "SELECT a.recipe_name, a.description, a.cooking_time"
-		+ "		FROM RecipeApp.recipes a"
-		+ "		INNER JOIN"
-		+ "		(SELECT f.recipe_id"
-		+ "			FROM RecipeApp.recipes AS f"
-		+ "			JOIN RecipeApp.recipes_ingredients AS g"
-		+ "			ON f.recipe_id = g.recipe_id"
-		+ "			JOIN RecipeApp.ingredients AS h"
-		+ "			ON g.ingredient_id = h.ingredient_id"
-		+ "			WHERE h.ingredient_name = '?'"
-		+ "			) b ON a.recipe_id=b.recipe_id "
-		+ "		INNER JOIN"
-		+ "		(SELECT f.recipe_id"
-		+ "			FROM RecipeApp.recipes AS f"
-		+ "			JOIN RecipeApp.recipes_ingredients AS g"
-		+ "			ON f.recipe_id = g.recipe_id"
-		+ "			JOIN ingredients AS h"
-		+ "			ON g.ingredient_id = h.ingredient_id"
-		+ "			WHERE h.ingredient_name = \'?\'"
-		+ "		) c ON b.recipe_id=c.recipe_id"
-		+ "		GROUP BY a.recipe_id";
-		
-    	
-    	return new ResponseEntity<String>(recipe, HttpStatus.OK);
+
+    	return new ResponseEntity<String>(r.toString(), HttpStatus.OK);
     }
     
     

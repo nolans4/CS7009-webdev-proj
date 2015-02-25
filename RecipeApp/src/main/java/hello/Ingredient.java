@@ -5,6 +5,12 @@ public class Ingredient implements Comparable<Ingredient> {
 	private final String name;
 	private final String amount;
 	
+	public Ingredient(){
+		this.id = -1;
+		this.amount = "";
+		this.name ="";
+	}
+	
 	public Ingredient(long id, String name, String amount){
 		this.id = id;
 		this.name = name;

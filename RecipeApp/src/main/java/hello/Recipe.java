@@ -3,28 +3,31 @@ package hello;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Recipe implements Comparable<Recipe> {
     private long id;
     private String title;
     private String description;
-    private int preptime;
+    private int time;
     private List<Ingredient> ingredients;
     private List<RecipeStep> steps;
     private int num_match;
 
     public Recipe(){
     	this.id = -1;
-    	this.preptime = 0;
+    	this.time = 0;
     	this.title ="";
     	this.description = "";
-        ingredients = new ArrayList<Ingredient>();
-        steps = new ArrayList<RecipeStep>();
+        this.ingredients = new ArrayList<Ingredient>();
+        this.steps = new ArrayList<RecipeStep>();
         num_match = -1;
     }
     
-    public Recipe(long id, String title, String description, int preptime, Ingredient i, RecipeStep s) {
+    public Recipe(long id, String title, String description, int time, Ingredient i, RecipeStep s) {
         this.id = id;
-        this.preptime = preptime;
+        this.time = time;
         this.description = description;
         this.title = title;
         ingredients = new ArrayList<Ingredient>();
@@ -71,7 +74,7 @@ public class Recipe implements Comparable<Recipe> {
     	return ingredients.get(0);
     }
     
-    public List<Ingredient> getAllIngredients(){
+    public List<Ingredient> getIngredients(){
     	return ingredients;
     }
     
@@ -79,7 +82,7 @@ public class Recipe implements Comparable<Recipe> {
     	return steps.get(0);
     }
     
-    public List<RecipeStep> getAllSteps(){
+    public List<RecipeStep> getSteps(){
     	return steps;
     }
     
@@ -101,8 +104,8 @@ public class Recipe implements Comparable<Recipe> {
         return title;
     }
 
-	public int getPreptime() {
-		return preptime;
+	public int getTime() {
+		return time;
 	} 
 	
 	public void addIngredient(Ingredient i){
@@ -120,7 +123,7 @@ public class Recipe implements Comparable<Recipe> {
 	
 	public String toString(){
 		String result = "{\n\"id\": "+this.id + ",\n\"title\": \""+this.title+"\",\n\"description\": \""+this.description+
-				"\",\n\"time\": "+this.preptime+",\n\"ingredients\":\n[";
+				"\",\n\"time\": "+this.time+",\n\"ingredients\":\n[";
 		for(int i = 0; i<ingredients.size(); i++){
 			result+=ingredients.get(i).toString();
 			if(i!=ingredients.size()-1)
@@ -142,6 +145,5 @@ public class Recipe implements Comparable<Recipe> {
 		
 		return result;		
 	}
-	
-	
+
 }
