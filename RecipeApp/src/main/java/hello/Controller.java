@@ -90,8 +90,6 @@ public class Controller {
 	
   //  private static final String template = "Hello, %s!";
  //   private final AtomicLong counter = new AtomicLong();
-
-    //set up some dummy data ?? 
     /*
      * Function should retrieve a list of recipe objects from the data base using ID
      * http://localhost:8080/recipe?id=2
@@ -142,7 +140,7 @@ public class Controller {
           });
    	
    	List<Recipe> newList = condenseFullRecipe(result);
-   	return newList.toString();     	    	
+   	return newList.get(0).toString();     	    	
     }
     
     //http://localhost:8080/byingredients?ingredients=chicken,rice
