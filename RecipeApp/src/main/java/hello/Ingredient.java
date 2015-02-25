@@ -53,10 +53,14 @@ public class Ingredient implements Comparable<Ingredient> {
 	}
 	
 	public String toString(){
-		String result = "{\n\"name\": \""+name+"\"";
-		if(amount.length()>0)
+		String result = "";
+		if(amount.length()>0){		
+			result = "{\n\"name\": \""+name+"\"";
 			result+=",\n\"amount\":\""+amount+"\"";
-		result+= "\n}";
+			result+= "\n}";
+		}else{
+			result ="\""+ name+"\"";		
+		}
 		return result;//"{\n\"name\": \""+name+"\",\n\"amount\":\""+amount+"\"\n}";
 	}
 	

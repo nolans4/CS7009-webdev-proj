@@ -45,14 +45,14 @@ public class Controller {
 	public List<Recipe> condenseRecipesIngredients(List<Recipe> result){
     	List<Recipe> newList = new ArrayList<Recipe>();    	
     	
-    	Collections.sort(result);
+    	//Collections.sort(result);
     	newList.add(result.get(0));
     	//go through list adding to new list 
     	for(int i = 1; i<result.size();i++){
     		Recipe curr = result.get(i);
     		Recipe endOfList = newList.get(newList.size()-1); 		
     		//if we have a new recipe to add the id will be greater than the last recipe in the list
-    		if(curr.compareTo(endOfList)==1){
+    		if(curr.compareTo(endOfList)==-1){
     			newList.add(curr);
     		}else{
     			endOfList.addIngredient(curr.getFirstIngredient());
@@ -64,7 +64,7 @@ public class Controller {
 	public List<Recipe> condenseFullRecipe(List<Recipe> result){
     	List<Recipe> newList = new ArrayList<Recipe>();    	
     	
-    	Collections.sort(result);
+    	//Collections.sort(result);
     	newList.add(result.get(0));
     	//go through list adding to new list 
     	for(int i = 1; i<result.size();i++){
@@ -102,7 +102,7 @@ public class Controller {
     public String getRecipeById(@RequestParam(value="id", defaultValue="0") final long id) {
     	//Get recipe
     	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.recipe_with_ingredients where recipe_id = ?",
+    	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.recipe_with_ingredients where recipe_id = ? order by recipe_id",
     	   new PreparedStatementSetter() {
              public void setValues(PreparedStatement ps) throws SQLException {
                  ps.setLong(1, id);
@@ -125,7 +125,7 @@ public class Controller {
     public String fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-   	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.full_recipe where recipe_id = ?",
+   	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id",
    	   new PreparedStatementSetter() {
             public void setValues(PreparedStatement ps) throws SQLException {
                 ps.setLong(1, id);
@@ -166,7 +166,7 @@ public class Controller {
     public String allIngredients(){
       	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
          List<Ingredient> results = jdbcTemplate.query(
-                 "select * from ingredients",
+                 "select * from RecipeApp.ingredients",
                  new RowMapper<Ingredient>() {
                      @Override
                      public Ingredient mapRow(ResultSet rs, int rowNum) throws SQLException { 
@@ -184,7 +184,7 @@ public class Controller {
     	
         System.out.println("Querying for all recipes");
         List<Recipe> results = jdbcTemplate.query(
-                "select * from RecipeApp.recipe_with_ingredients",
+                "select * from RecipeApp.recipe_with_ingredients order by recipe_id",
                 new RowMapper<Recipe>() {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -193,6 +193,7 @@ public class Controller {
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                                 rs.getString("description"), rs.getInt("cooking_time"),i,null);
                     }
+                    
                 });   
     	List<Recipe> newList = condenseRecipesIngredients(results);
     	
@@ -230,20 +231,20 @@ public class Controller {
 		
 		//will need to parse the ingredients and steps in too
 		String sql = "SELECT a.recipe_name, a.description, a.cooking_time"
-		+ "		FROM recipes a"
+		+ "		FROM RecipeApp.recipes a"
 		+ "		INNER JOIN"
 		+ "		(SELECT f.recipe_id"
-		+ "			FROM recipes AS f"
-		+ "			JOIN recipes_ingredients AS g"
+		+ "			FROM RecipeApp.recipes AS f"
+		+ "			JOIN RecipeApp.recipes_ingredients AS g"
 		+ "			ON f.recipe_id = g.recipe_id"
-		+ "			JOIN ingredients AS h"
+		+ "			JOIN RecipeApp.ingredients AS h"
 		+ "			ON g.ingredient_id = h.ingredient_id"
 		+ "			WHERE h.ingredient_name = '?'"
 		+ "			) b ON a.recipe_id=b.recipe_id "
 		+ "		INNER JOIN"
 		+ "		(SELECT f.recipe_id"
-		+ "			FROM recipes AS f"
-		+ "			JOIN recipes_ingredients AS g"
+		+ "			FROM RecipeApp.recipes AS f"
+		+ "			JOIN RecipeApp.recipes_ingredients AS g"
 		+ "			ON f.recipe_id = g.recipe_id"
 		+ "			JOIN ingredients AS h"
 		+ "			ON g.ingredient_id = h.ingredient_id"
