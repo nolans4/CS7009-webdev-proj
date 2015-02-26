@@ -145,41 +145,75 @@ public class Controller {
     }
     
     //http://localhost:8080/byingredients?ingredients=chicken,rice
-    @RequestMapping("/byingredients")
-    public String byIngredients(@RequestParam(value="ingredients", defaultValue="") final List<String> ingredients){
-    	int num_i = ingredients.size();
-		String sql = "SELECT a.recipe_name, a.description, a.cooking_time"
-		+ "		FROM RecipeApp.recipes a"
-		+ "		INNER JOIN"
-		+ "		(SELECT f.recipe_id"
-		+ "			FROM RecipeApp.recipes AS f"
-		+ "			JOIN RecipeApp.recipes_ingredients AS g"
-		+ "			ON f.recipe_id = g.recipe_id"
-		+ "			JOIN RecipeApp.ingredients AS h"
-		+ "			ON g.ingredient_id = h.ingredient_id"
-		+ "			WHERE h.ingredient_name = '?'"
-		+ "			) b ON a.recipe_id=b.recipe_id "
-		+ "		INNER JOIN"
-		+ "		(SELECT f.recipe_id"
-		+ "			FROM RecipeApp.recipes AS f"
-		+ "			JOIN RecipeApp.recipes_ingredients AS g"
-		+ "			ON f.recipe_id = g.recipe_id"
-		+ "			JOIN ingredients AS h"
-		+ "			ON g.ingredient_id = h.ingredient_id"
-		+ "			WHERE h.ingredient_name = \'?\'"
-		+ "		) c ON b.recipe_id=c.recipe_id"
-		+ "		GROUP BY a.recipe_id";
+    @RequestMapping(value = "/byingredients", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
+    @ResponseBody
+    public String byIngredients(@RequestBody String ingredients){
+    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  	
+    	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+    	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+    	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+    	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    	List<String> names = null;
+    	
+    	try {
+			names = mapper.readValue(ingredients, List.class);
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+		String sql = "select * from"
+				+ "	("
+				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate"
+				+ "    from"
+				+ "    ("
+				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, i.ingredient_name"
+				+ "	        from RecipeApp.recipes r, RecipeApp.ingredients i, RecipeApp.recipes_ingredients ri"
+				+ "         where"
+				+ "         ri.recipe_id = r.recipe_id and ri.ingredient_id = i.ingredient_id and"
+				+ "	        (";
 		
-    	    	
-    	//first add the full match to start of list
-    	
-    	
-    	//then add any recipe that has all ingredients
-    	
-    	for(int i = 0; i<ingredients.size(); i++)
-    		System.out.println(ingredients.get(i));
-    	
-    	return ingredients.toString();
+				
+		//add ingredients into sql - change to injection once tested
+		for(int i = 0; i<names.size()-1;i++)
+			sql+= "i.ingredient_name = \""+names.get(i)+"\" OR ";
+
+		sql+= "i.ingredient_name = \""+names.get(names.size()-1)+"\"";
+		sql+= ")"
+				+ " order by recipe_name"
+				+ " ) s"
+				+ " inner join ("
+				+ " select ri.recipe_id, count(ri.ingredient_id) as number_ingredients"
+				+ " from RecipeApp.recipes_ingredients ri"
+				+ " group by recipe_id"
+				+ " ) ni"
+				+ " on s.recipe_id = ni.recipe_id"
+				+ " group by recipe_name"
+				+ " order by match_rate desc, matching, recipe_name"
+				+ "	) m"
+				+ " inner join RecipeApp.recipe_with_ingredients rwi on m.recipe_id = rwi.recipe_id";
+	    	
+        List<Recipe> results = jdbcTemplate.query(
+                sql,
+                new RowMapper<Recipe>() {
+                    @Override
+                    public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
+                    	
+                        return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                                rs.getString("description"), rs.getInt("cooking_time"),i,null);
+                    }
+                    
+                });   
+    	List<Recipe> newList = condenseRecipesIngredients(results); 	
+    	return newList.toString();
     	
     }
     
