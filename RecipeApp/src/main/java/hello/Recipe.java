@@ -14,6 +14,7 @@ public class Recipe implements Comparable<Recipe> {
     private List<Ingredient> ingredients;
     private List<RecipeStep> steps;
     private int num_match;
+    public boolean contains;
 
     public Recipe(){
     	this.id = -1;
@@ -23,6 +24,7 @@ public class Recipe implements Comparable<Recipe> {
         this.ingredients = new ArrayList<Ingredient>();
         this.steps = new ArrayList<RecipeStep>();
         num_match = -1;
+        contains = false;
     }
     
     public Recipe(long id, String title, String description, int time, Ingredient i, RecipeStep s) {
@@ -37,6 +39,7 @@ public class Recipe implements Comparable<Recipe> {
         if(s!=null)
         	steps.add(s);
         num_match =-1;
+        contains = false;
     }
     
     @Override
@@ -123,14 +126,25 @@ public class Recipe implements Comparable<Recipe> {
 	
 	public String toString(){
 		String result = "{\n\"id\": "+this.id + ",\n\"title\": \""+this.title+"\",\n\"description\": \""+this.description+
-				"\",\n\"time\": "+this.time+",\n\"ingredients\":\n[";
+				"\",\n\"time\": "+this.time;
+		if(contains)
+			result+=",\n\"contains\":\n[";
+		else
+			result+=",\n\"ingredients\":\n[";
 		for(int i = 0; i<ingredients.size(); i++){
 			result+=ingredients.get(i).toString();
 			if(i!=ingredients.size()-1)
 				result+=",";
 			result+="\n";
 		}
-		result+="\n],\n\"steps\":\n[\n";
+		result+="]";
+		
+		if(steps.size()==0){
+			result+="}";
+			return result;
+		}
+		
+		result+=",\n\"steps\":\n[\n";
 		
 		for(int i = 0; i<steps.size(); i++){
 			result+=steps.get(i).toString();

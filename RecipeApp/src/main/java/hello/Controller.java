@@ -53,7 +53,7 @@ public class Controller {
     		Recipe curr = result.get(i);
     		Recipe endOfList = newList.get(newList.size()-1); 		
     		//if we have a new recipe to add the id will be greater than the last recipe in the list
-    		if(curr.compareTo(endOfList)==-1){
+    		if(curr.compareTo(endOfList)!=0){
     			newList.add(curr);
     		}else{
     			endOfList.addIngredient(curr.getFirstIngredient());
@@ -205,10 +205,11 @@ public class Controller {
                 new RowMapper<Recipe>() {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
-                    	
-                        return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
+                    	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                                 rs.getString("description"), rs.getInt("cooking_time"),i,null);
+                    	r.contains = true;
+                        return r;
                     }
                     
                 });   
