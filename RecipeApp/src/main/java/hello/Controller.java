@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcCall;
 
 
 @RestController
@@ -42,11 +46,11 @@ public class Controller {
 	public void setDataSource(SimpleDriverDataSource dataSource){
 		this.dataSource = dataSource;	
 	}
-	
+	/*
+	 * Condenses results into recipes and ingredients
+	 */
 	public List<Recipe> condenseRecipesIngredients(List<Recipe> result){
     	List<Recipe> newList = new ArrayList<Recipe>();    	
-    	
-    	//Collections.sort(result);
     	newList.add(result.get(0));
     	//go through list adding to new list 
     	for(int i = 1; i<result.size();i++){
@@ -61,7 +65,9 @@ public class Controller {
     	}
     	 return newList;			
 	}
-	
+	/*
+	 * Condenses results into full recipes
+	 */
 	public List<Recipe> condenseFullRecipe(List<Recipe> result){
     	List<Recipe> newList = new ArrayList<Recipe>();    	
     	
@@ -72,7 +78,7 @@ public class Controller {
     		Recipe curr = result.get(i);
     		Recipe endOfList = newList.get(newList.size()-1); 		
     		//if we have a new recipe to add the id will be greater than the last recipe in the list
-    		if(curr.compareTo(endOfList)==1){
+    		if(curr.compareTo(endOfList)!=0){
     			newList.add(curr);
     		}else{
     			Ingredient next_i = curr.getFirstIngredient();
@@ -89,14 +95,9 @@ public class Controller {
     	 return newList;			
 	}	
 	
-  //  private static final String template = "Hello, %s!";
- //   private final AtomicLong counter = new AtomicLong();
-    /*
-     * Function should retrieve a list of recipe objects from the data base using ID
-     * http://localhost:8080/recipe?id=2
-     * 
-     * Need to also build up list of ingredients and steps that are associated with that recipe ID
-     */
+	/*
+	 * Not currently used?
+	 */
     @RequestMapping("/recipeingredients")
     public String getRecipeById(@RequestParam(value="id", defaultValue="0") final long id) {
     	//Get recipe
@@ -120,6 +121,9 @@ public class Controller {
     	return newList.toString(); 	    	
     }
     
+    /*
+     * Retrieve full recipe by id
+     */
     @RequestMapping("/recipe")
     public String fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
@@ -144,6 +148,9 @@ public class Controller {
    	return newList.get(0).toString();     	    	
     }
     
+    /*
+     * Retrieve recipes ranked by ingredients passed
+     */
     //http://localhost:8080/byingredients?ingredients=chicken,rice
     @RequestMapping(value = "/byingredients", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
     @ResponseBody
@@ -261,15 +268,19 @@ public class Controller {
     	return new String("Recipe application!");
     }
     
+    /*
+     * Insert a new recipe
+     */
     @RequestMapping(value ="/sendRecipe", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
     @ResponseBody
     public ResponseEntity<String> sendNewRecipe(@RequestBody String recipe){
-    	//System.out.println("Taking "+recipe);
+     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
     	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
     	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
     	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    	mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     	Recipe r=null;
 		try {
 			r = mapper.readValue(recipe, Recipe.class);
@@ -277,18 +288,45 @@ public class Controller {
 		} catch (JsonParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
 		} catch (JsonMappingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
 		}
 		//System.out.println(r.toString());
 		//will need to parse the ingredients and steps in too
-
+		//Add recipe
+		
+		//Insert recipe and get the id needed for the ingredient inserts
+		/*SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withProcedureName("new_recipe");
+		SimpleJdbcCall ingredientCall = new SimpleJdbcCall(dataSource).withProcedureName("new_recipe_ingredient");
+		SimpleJdbcCall stepCall = new SimpleJdbcCall(dataSource).withProcedureName("new_recipe_step");
+		
+		SqlParameterSource recipe_in = new MapSqlParameterSource().
+                addValue("name", r.getTitle()).addValue("description", r.getDescription()).addValue("cooking_time", r.getTime());
+		Map<String, Object> out = recipeCall.execute(recipe_in);
+		Integer recipe_id = (Integer)out.get("recipe_id");
+		
+		for(int i = 0; i<r.getIngredients().size(); i++){
+			Ingredient curr = r.getIngredients().get(i);
+			SqlParameterSource ingredient_in = new MapSqlParameterSource().
+	                addValue("name", curr.getName()).addValue("amount", curr.getAmount()).addValue("recipe_id", recipe_id);
+			ingredientCall.execute(ingredient_in);					
+		}
+		
+		for(int i = 0; i<r.getSteps().size(); i++){
+			RecipeStep curr = r.getSteps().get(i);
+			SqlParameterSource step_in = new MapSqlParameterSource().
+	                addValue("step", curr.getStep()).addValue("recipe_id", recipe_id).addValue("description", curr.getDescription());
+			stepCall.execute(step_in);			
+		}	*/	
+		
     	return new ResponseEntity<String>(r.toString(), HttpStatus.OK);
     }
-    
     
 }
