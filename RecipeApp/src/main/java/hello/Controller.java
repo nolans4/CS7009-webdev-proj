@@ -7,8 +7,10 @@ import java.io.StringWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,8 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -274,13 +278,14 @@ public class Controller {
     @RequestMapping(value ="/sendRecipe", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
     @ResponseBody
     public ResponseEntity<String> sendNewRecipe(@RequestBody String recipe){
-     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
     	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
     	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
     	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
     	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    	mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    	//mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+    	//mapper.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS,true);
+ 
     	Recipe r=null;
 		try {
 			r = mapper.readValue(recipe, Recipe.class);
@@ -298,19 +303,26 @@ public class Controller {
 			e.printStackTrace();
 			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
 		}
-		//System.out.println(r.toString());
-		//will need to parse the ingredients and steps in too
-		//Add recipe
 		
 		//Insert recipe and get the id needed for the ingredient inserts
-		/*SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withProcedureName("new_recipe");
-		SimpleJdbcCall ingredientCall = new SimpleJdbcCall(dataSource).withProcedureName("new_recipe_ingredient");
-		SimpleJdbcCall stepCall = new SimpleJdbcCall(dataSource).withProcedureName("new_recipe_step");
+		SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe")
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("name", Types.VARCHAR), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("time", Types.INTEGER), new SqlOutParameter("id", Types.BIGINT));
 		
-		SqlParameterSource recipe_in = new MapSqlParameterSource().
-                addValue("name", r.getTitle()).addValue("description", r.getDescription()).addValue("cooking_time", r.getTime());
+		SimpleJdbcCall ingredientCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe_ingredient")
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("name", Types.VARCHAR), new SqlParameter("amount", Types.VARCHAR), new SqlParameter("recipe_id", Types.BIGINT), new SqlOutParameter("ing_id", Types.BIGINT));
+		
+		SimpleJdbcCall stepCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe_step")
+			.withoutProcedureColumnMetaDataAccess()
+			.declareParameters(new SqlParameter("step", Types.INTEGER), new SqlParameter("description", Types.VARCHAR), new SqlParameter("recipe_id", Types.BIGINT));
+		
+		
+		SqlParameterSource recipe_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
+                .addValue("name", r.getTitle()).addValue("descr", r.getDescription()).addValue("time", r.getTime());
+
 		Map<String, Object> out = recipeCall.execute(recipe_in);
-		Integer recipe_id = (Integer)out.get("recipe_id");
+		Long recipe_id = (Long)out.get("id");
 		
 		for(int i = 0; i<r.getIngredients().size(); i++){
 			Ingredient curr = r.getIngredients().get(i);
@@ -324,8 +336,14 @@ public class Controller {
 			SqlParameterSource step_in = new MapSqlParameterSource().
 	                addValue("step", curr.getStep()).addValue("recipe_id", recipe_id).addValue("description", curr.getDescription());
 			stepCall.execute(step_in);			
-		}	*/	
+		}		
 		
+		//TEST
+		/*SimpleJdbcCall testCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("test_proc").withoutProcedureColumnMetaDataAccess()
+			    .declareParameters(new SqlParameter("id",Types.BIGINT),new SqlOutParameter("name", Types.VARCHAR));;//.useInParameterNames("name","description","cooking_time");
+		SqlParameterSource in = new MapSqlParameterSource().addValue("id",1);//.addValues(r.getTitle(),r.getDescription(), r.getTime());
+		Map<String, Object> result = testCall.execute(in);
+		System.out.println(result.get("name"));*/
     	return new ResponseEntity<String>(r.toString(), HttpStatus.OK);
     }
     
