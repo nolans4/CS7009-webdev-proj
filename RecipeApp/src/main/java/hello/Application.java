@@ -141,7 +141,7 @@ class WebSecurityConfiguration extends GlobalAuthenticationConfigurerAdapter {
     };
   }
 }
- 
+
 @EnableWebSecurity
 @Configuration
 class WebSecurityConfig extends WebSecurityConfigurerAdapter {

@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -103,7 +104,7 @@ public class Controller {
 	 * Not currently used?
 	 */
     @RequestMapping("/recipeingredients")
-    public String getRecipeById(@RequestParam(value="id", defaultValue="0") final long id) {
+    public ResponseEntity<String> getRecipeById(@RequestParam(value="id", defaultValue="0") final long id) {
     	//Get recipe
     	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.recipe_with_ingredients where recipe_id = ? order by recipe_id",
@@ -122,14 +123,17 @@ public class Controller {
            });
     	
     	List<Recipe> newList = condenseRecipesIngredients(result);
-    	return newList.toString(); 	    	
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(newList.toString(),responseHeaders, HttpStatus.OK);
+    	return res; 	    	
     }
     
     /*
      * Retrieve full recipe by id
      */
     @RequestMapping("/recipe")
-    public String fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
+    public ResponseEntity<String> fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
    	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id",
@@ -149,7 +153,10 @@ public class Controller {
           });
    	
    	List<Recipe> newList = condenseFullRecipe(result);
-   	return newList.get(0).toString();     	    	
+	HttpHeaders responseHeaders = new HttpHeaders();
+	responseHeaders.add("Access-Control-Allow-Origin", "*");
+	ResponseEntity<String> res = new ResponseEntity<String>(newList.get(0).toString(),responseHeaders, HttpStatus.OK);
+	return res;    	    	
     }
     
     /*
@@ -158,7 +165,7 @@ public class Controller {
     //http://localhost:8080/byingredients?ingredients=chicken,rice
     @RequestMapping(value = "/byingredients", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
     @ResponseBody
-    public String byIngredients(@RequestBody String ingredients){
+    public ResponseEntity<String> byIngredients(@RequestBody String ingredients){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  	
     	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
     	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
@@ -225,12 +232,15 @@ public class Controller {
                     
                 });   
     	List<Recipe> newList = condenseRecipesIngredients(results); 	
-    	return newList.toString();
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(newList.toString(),responseHeaders, HttpStatus.OK);
+    	return res; 
     	
     }
     
     @RequestMapping("ingredients")
-    public String allIngredients(){
+    public ResponseEntity<String> allIngredients(){
       	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
          List<Ingredient> results = jdbcTemplate.query(
                  "select * from RecipeApp.ingredients",
@@ -240,13 +250,16 @@ public class Controller {
                          return new Ingredient(0,rs.getString("ingredient_name"),"");
                      }
                  });   
-       	return results.toString();       	
+     	HttpHeaders responseHeaders = new HttpHeaders();
+     	responseHeaders.add("Access-Control-Allow-Origin", "*");
+     	ResponseEntity<String> res = new ResponseEntity<String>(results.toString(),responseHeaders, HttpStatus.OK);
+     	return res;       	
  
     }
     
     
     @RequestMapping("/recipes")
-    public String allRecipes(){
+    public ResponseEntity<String> allRecipes(){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	
         System.out.println("Querying for all recipes");
@@ -263,8 +276,10 @@ public class Controller {
                     
                 });   
     	List<Recipe> newList = condenseRecipesIngredients(results);
-    	
-    	return newList.toString();
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(newList.toString(),responseHeaders, HttpStatus.OK);
+    	return res; 
     }
     
     @RequestMapping("/")
@@ -344,7 +359,26 @@ public class Controller {
 		SqlParameterSource in = new MapSqlParameterSource().addValue("id",1);//.addValues(r.getTitle(),r.getDescription(), r.getTime());
 		Map<String, Object> result = testCall.execute(in);
 		System.out.println(result.get("name"));*/
-    	return new ResponseEntity<String>(r.toString(), HttpStatus.OK);
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(r.toString(),responseHeaders, HttpStatus.OK);
+    	return res; 
     }
+ 
+    /*
+     * Retrieve full recipe by id
+     */
+    @RequestMapping("/deleteRecipe")
+    public ResponseEntity<String> deleteRecipe(@RequestParam(value="id", defaultValue="0") final long id){
+		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("delete_recipe")
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("id", Types.BIGINT));
+		SqlParameterSource in = new MapSqlParameterSource().addValue("id",id);
+	    call.execute(in);
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");	
+    	return new ResponseEntity<String>("Recipe "+id+" successfully deleted",responseHeaders, HttpStatus.OK);   	
+    }
+    
     
 }
