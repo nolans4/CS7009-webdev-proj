@@ -366,7 +366,7 @@ public class Controller {
     }
  
     /*
-     * Retrieve full recipe by id
+     * Delete full recipe by id (will not delete ingredients)
      */
     @RequestMapping("/deleteRecipe")
     public ResponseEntity<String> deleteRecipe(@RequestParam(value="id", defaultValue="0") final long id){
@@ -379,6 +379,28 @@ public class Controller {
     	responseHeaders.add("Access-Control-Allow-Origin", "*");	
     	return new ResponseEntity<String>("Recipe "+id+" successfully deleted",responseHeaders, HttpStatus.OK);   	
     }
+    
+    @RequestMapping("/random")
+    public ResponseEntity<String> randomI(){
+    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    	 String sql = "SELECT * FROM RecipeApp.ingredients WHERE 1"
+    	 		+ "    			 ORDER BY RAND()"
+    	 		+ "    			 LIMIT 3";
+    	 
+         List<Ingredient> results = jdbcTemplate.query(
+                 sql,
+                 new RowMapper<Ingredient>() {
+                     @Override
+                     public Ingredient mapRow(ResultSet rs, int rowNum) throws SQLException { 
+                         return new Ingredient(0,rs.getString("ingredient_name"),"");
+                     }
+                 });   
+     	HttpHeaders responseHeaders = new HttpHeaders();
+     	responseHeaders.add("Access-Control-Allow-Origin", "*");
+     	ResponseEntity<String> res = new ResponseEntity<String>(results.toString(),responseHeaders, HttpStatus.OK);
+     	return res;
+     }
+      
     
     
 }
