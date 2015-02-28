@@ -2,8 +2,15 @@ package hello;
 
 //import java.util.concurrent.atomic.AtomicLong;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -364,7 +373,7 @@ public class Controller {
     	ResponseEntity<String> res = new ResponseEntity<String>(r.toString(),responseHeaders, HttpStatus.OK);
     	return res; 
     }
- 
+    
     /*
      * Delete full recipe by id (will not delete ingredients)
      */
@@ -379,6 +388,36 @@ public class Controller {
     	responseHeaders.add("Access-Control-Allow-Origin", "*");	
     	return new ResponseEntity<String>("Recipe "+id+" successfully deleted",responseHeaders, HttpStatus.OK);   	
     }
+    
+    /*
+     * Delete step from recipe by id (will not delete ingredients)
+     */
+    @RequestMapping("/deleteStep")
+    public ResponseEntity<String> deleteStep(@RequestParam(value="id", defaultValue="0") final long id,@RequestParam(value="step", defaultValue="0") final int step){
+		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("delete_step")
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("id", Types.BIGINT), new SqlParameter("step", Types.INTEGER));
+		SqlParameterSource in = new MapSqlParameterSource().addValue("id",id).addValue("step",step);
+	    call.execute(in);
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");	
+    	return new ResponseEntity<String>("Step "+step+ " from recipe "+id+" successfully deleted",responseHeaders, HttpStatus.OK);   	
+    }
+    
+    /*
+     * Delete ingredient from recipe
+     */
+    @RequestMapping("/deleteRecipeIngredient")
+    public ResponseEntity<String> deleteRecipeIngredient(@RequestParam(value="r_id", defaultValue="0") final long r_id,@RequestParam(value="i_id", defaultValue="0") final int i_id){
+		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("delete_recipe_ingredient")
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("r_id", Types.BIGINT), new SqlParameter("i_id", Types.BIGINT));
+		SqlParameterSource in = new MapSqlParameterSource().addValue("r_id",r_id).addValue("i_id",i_id);
+	    call.execute(in);
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");	
+    	return new ResponseEntity<String>("Ingredient "+i_id+ " from recipe "+r_id+" successfully deleted",responseHeaders, HttpStatus.OK);   	
+    }    
     
     @RequestMapping("/random")
     public ResponseEntity<String> randomI(){
@@ -400,7 +439,72 @@ public class Controller {
      	ResponseEntity<String> res = new ResponseEntity<String>(results.toString(),responseHeaders, HttpStatus.OK);
      	return res;
      }
-      
     
+    
+    /*
+     * Send an image
+     */
+    @RequestMapping(value ="/postImage", method = RequestMethod.POST,headers ={"Accept=image/*"})
+    @ResponseBody
+    public String testImage(@RequestParam(value="name", defaultValue="0") final String name,  @RequestParam("file") MultipartFile file){
+    	if (!file.isEmpty()) {
+            try {
+                byte[] bytes = file.getBytes();
+                
+        		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("add_image")
+        				.withoutProcedureColumnMetaDataAccess()
+        				.declareParameters(new SqlParameter("name", Types.VARCHAR),new SqlParameter("image", Types.BLOB),new SqlParameter("format",Types.VARCHAR),  new SqlParameter("size", Types.BIGINT));
+        		SqlParameterSource in = new MapSqlParameterSource().addValue("name",name).addValue("image",bytes).addValue("format", file.getContentType()).addValue("size",file.getSize());
+        	    call.execute(in);             
+              
+                BufferedOutputStream stream =
+                        new BufferedOutputStream(new FileOutputStream(new File(name)));
+                //upload the file here!
+                stream.write(bytes);
+                stream.close();
+                return "You successfully uploaded " + name + "!";
+            } catch (Exception e) {
+            	System.out.println(e.getMessage());
+                return "You failed to upload " + name + " => " + e.getMessage();
+            }
+        } else {
+        	System.out.println("Not working");
+            return "You failed to upload " + name + " because the file was empty.";
+        } 	
+    } 
+ 
+    /*
+     * Delete full recipe by id (will not delete ingredients)
+     */
+    @RequestMapping(value ="/getImage", method = RequestMethod.GET, produces = "image/jpeg")
+    @ResponseBody
+    public ResponseEntity<byte[]> getImage(@RequestParam(value="id", defaultValue="0") final long id,  @RequestParam("name") final String name){
+    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  
+    	//load file
+    	//Path path = Paths.get(name);
+    	byte[] data;
+		List<byte[]> results = jdbcTemplate.query(
+				  "select * from RecipeApp.images where id = ?",
+		    	   new PreparedStatementSetter() {
+		             public void setValues(PreparedStatement ps) throws SQLException {
+		                 ps.setLong(1, id);
+		             }
+		    	   },
+		            new RowMapper<byte[]>() {
+		                @Override
+		                public byte[] mapRow(ResultSet rs, int rowNum) throws SQLException {
+		                	return rs.getBytes("image");
+		                }
+		            }); 		
+		
+		//data = Files.readAllBytes(path);
+		data = results.get(0);
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.add("Access-Control-Allow-Origin", "*");  
+		//responseHeaders.add("Content-Type",");
+		return new ResponseEntity<byte[]>(data,responseHeaders, HttpStatus.OK);
+    	
+ 	
+    }
     
 }
