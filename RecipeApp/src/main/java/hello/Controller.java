@@ -331,7 +331,7 @@ public class Controller {
 		//Insert recipe and get the id needed for the ingredient inserts
 		SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe")
 				.withoutProcedureColumnMetaDataAccess()
-				.declareParameters(new SqlParameter("name", Types.VARCHAR), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("time", Types.INTEGER), new SqlOutParameter("id", Types.BIGINT));
+				.declareParameters(new SqlParameter("name", Types.VARCHAR), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("time", Types.VARCHAR), new SqlOutParameter("id", Types.BIGINT));
 		
 		SimpleJdbcCall ingredientCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe_ingredient")
 				.withoutProcedureColumnMetaDataAccess()
