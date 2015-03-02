@@ -90,8 +90,8 @@ public class Recipe implements Comparable<Recipe> {
     }
     
     
-    public void setId(int id){
-    	this.id = id;
+    public void setId(Long recipe_id){
+    	this.id = recipe_id;
     }
     
     public long getId() {
@@ -126,7 +126,7 @@ public class Recipe implements Comparable<Recipe> {
 	
 	public String toString(){
 		String result = "{\n\"id\": "+this.id + ",\n\"title\": \""+this.title+"\",\n\"description\": \""+this.description+
-				"\",\n\"time\": "+this.time;
+				"\",\n\"time\": \""+this.time+"\"";
 		if(contains)
 			result+=",\n\"contains\":\n[";
 		else

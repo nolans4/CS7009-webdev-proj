@@ -368,6 +368,7 @@ public class Controller {
 		SqlParameterSource in = new MapSqlParameterSource().addValue("id",1);//.addValues(r.getTitle(),r.getDescription(), r.getTime());
 		Map<String, Object> result = testCall.execute(in);
 		System.out.println(result.get("name"));*/
+		r.setId(recipe_id);
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
     	ResponseEntity<String> res = new ResponseEntity<String>(r.toString(),responseHeaders, HttpStatus.OK);
