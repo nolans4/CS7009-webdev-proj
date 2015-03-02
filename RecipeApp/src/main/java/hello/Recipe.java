@@ -10,7 +10,7 @@ public class Recipe implements Comparable<Recipe> {
     private long id;
     private String title;
     private String description;
-    private int time;
+    private String time;
     private List<Ingredient> ingredients;
     private List<RecipeStep> steps;
     private int num_match;
@@ -18,7 +18,7 @@ public class Recipe implements Comparable<Recipe> {
 
     public Recipe(){
     	this.id = -1;
-    	this.time = 0;
+    	this.time = "";
     	this.title ="";
     	this.description = "";
         this.ingredients = new ArrayList<Ingredient>();
@@ -27,7 +27,7 @@ public class Recipe implements Comparable<Recipe> {
         contains = false;
     }
     
-    public Recipe(long id, String title, String description, int time, Ingredient i, RecipeStep s) {
+    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s) {
         this.id = id;
         this.time = time;
         this.description = description;
@@ -107,7 +107,7 @@ public class Recipe implements Comparable<Recipe> {
         return title;
     }
 
-	public int getTime() {
+	public String getTime() {
 		return time;
 	} 
 	

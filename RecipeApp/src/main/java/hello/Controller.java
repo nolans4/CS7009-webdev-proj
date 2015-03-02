@@ -127,7 +127,7 @@ public class Controller {
                  public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                  	 Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                      return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                             rs.getString("description"), rs.getInt("cooking_time"),i,null);
+                             rs.getString("description"), rs.getString("cooking_time"),i,null);
              }
            });
     	
@@ -157,7 +157,7 @@ public class Controller {
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                            rs.getString("description"), rs.getInt("cooking_time"),i,s);
+                            rs.getString("description"), rs.getString("cooking_time"),i,s);
             }
           });
    	
@@ -234,7 +234,7 @@ public class Controller {
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getInt("cooking_time"),i,null);
+                                rs.getString("description"), rs.getString("cooking_time"),i,null);
                     	r.contains = true;
                         return r;
                     }
@@ -280,7 +280,7 @@ public class Controller {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
                     	
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getInt("cooking_time"),i,null);
+                                rs.getString("description"), rs.getString("cooking_time"),i,null);
                     }
                     
                 });   
@@ -444,9 +444,9 @@ public class Controller {
     /*
      * Send an image
      */
-    @RequestMapping(value ="/postImage", method = RequestMethod.POST,headers ={"Accept=image/*"})
+    @RequestMapping(value ="/postImage", method = RequestMethod.POST)//,headers ={"Accept=image/jpeg,image/png"})
     @ResponseBody
-    public String testImage(@RequestParam(value="name", defaultValue="0") final String name,  @RequestParam("file") MultipartFile file){
+    public ResponseEntity<String> testImage(@RequestParam(value="name", defaultValue="0") final String name,  @RequestParam("file") MultipartFile file){
     	if (!file.isEmpty()) {
             try {
                 byte[] bytes = file.getBytes();
@@ -462,46 +462,47 @@ public class Controller {
                 //upload the file here!
                 stream.write(bytes);
                 stream.close();
-                return "You successfully uploaded " + name + "!";
+             	return new ResponseEntity<String>("You successfully uploaded " + name + "!", HttpStatus.OK);
             } catch (Exception e) {
             	System.out.println(e.getMessage());
-                return "You failed to upload " + name + " => " + e.getMessage();
+             	return new ResponseEntity<String>("You failed to upload " + name + " => " + e.getMessage(), HttpStatus.BAD_REQUEST);
             }
         } else {
         	System.out.println("Not working");
-            return "You failed to upload " + name + " because the file was empty.";
+         	return new ResponseEntity<String>("You failed to upload " + name + " because the file was empty.", HttpStatus.NO_CONTENT);
         } 	
     } 
  
     /*
      * Delete full recipe by id (will not delete ingredients)
      */
-    @RequestMapping(value ="/getImage", method = RequestMethod.GET, produces = "image/jpeg")
+    @RequestMapping(value ="/getImage", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<byte[]> getImage(@RequestParam(value="id", defaultValue="0") final long id,  @RequestParam("name") final String name){
+    public ResponseEntity<byte[]> getImage(@RequestParam(value="id", defaultValue="0") final long id){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  
+    	
     	//load file
     	//Path path = Paths.get(name);
     	byte[] data;
-		List<byte[]> results = jdbcTemplate.query(
+		List<Image> results = jdbcTemplate.query(
 				  "select * from RecipeApp.images where id = ?",
 		    	   new PreparedStatementSetter() {
 		             public void setValues(PreparedStatement ps) throws SQLException {
 		                 ps.setLong(1, id);
 		             }
 		    	   },
-		            new RowMapper<byte[]>() {
+		            new RowMapper<Image>() {
 		                @Override
-		                public byte[] mapRow(ResultSet rs, int rowNum) throws SQLException {
-		                	return rs.getBytes("image");
+		                public Image mapRow(ResultSet rs, int rowNum) throws SQLException {
+		                	return new Image(rs.getBytes("image"),rs.getString("name"),rs.getString("format"),rs.getLong("size"),"");
 		                }
 		            }); 		
 		
 		//data = Files.readAllBytes(path);
-		data = results.get(0);
+		data = results.get(0).getImage();
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.add("Access-Control-Allow-Origin", "*");  
-		//responseHeaders.add("Content-Type",");
+		responseHeaders.add("Content-Type",results.get(0).getContenttype());
 		return new ResponseEntity<byte[]>(data,responseHeaders, HttpStatus.OK);
     	
  	
