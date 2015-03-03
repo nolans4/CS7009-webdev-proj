@@ -167,11 +167,12 @@ public class Recipe implements Comparable<Recipe> {
 				result+=",";
 			result+="\n";
 		}
-		result+="\n],\n\"added by\":\""+added_by+"\"";
-		
-		
-		if(match>-1)
+		result+="\n],\n\"addedby\":\""+added_by+"\"";
+				
+		if(match>-1){
 			result+=numMatch();
+		}else System.out.println("MATCH RATE: \n\n\n\n"+match+"\n\n\n");
+		
 		result+="\n}";
 		
 		return result;		
