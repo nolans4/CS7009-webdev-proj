@@ -13,6 +13,7 @@ public class Recipe implements Comparable<Recipe> {
     private String time;
     private List<Ingredient> ingredients;
     private List<RecipeStep> steps;
+    private List<Long> imageids;
     private String addedby;
     private float match;
 
@@ -25,6 +26,7 @@ public class Recipe implements Comparable<Recipe> {
     	this.description = "";
         this.ingredients = new ArrayList<Ingredient>();
         this.steps = new ArrayList<RecipeStep>();
+        this.imageids = new ArrayList<Long>();
         this.addedby = "";
         match = -1;
         contains = false;
@@ -173,6 +175,18 @@ public class Recipe implements Comparable<Recipe> {
 			if(i!=steps.size()-1)
 				result+=",";
 			result+="\n";
+		}
+		
+		if(imageids.size()>0){
+			result+="\n],\n\"imageids\":\n[\n";
+			
+			for(int i = 0; i<imageids.size(); i++){
+				
+				result+=imageids.get(i);
+				if(i!=steps.size()-1)
+					result+=",";
+				result+="\n";
+			}
 		}
 		result+="\n],\n\"addedby\":\""+addedby+"\"\n}";
 		
