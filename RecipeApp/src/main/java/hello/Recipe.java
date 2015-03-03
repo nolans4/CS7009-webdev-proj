@@ -42,7 +42,7 @@ public class Recipe implements Comparable<Recipe> {
         	steps.add(s);
         match =-1;
         contains = false;
-        addedby = addedby;
+        this.addedby = addedby;
     }
     
     @Override
