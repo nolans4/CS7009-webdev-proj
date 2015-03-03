@@ -451,23 +451,24 @@ public class Controller {
      */
     @RequestMapping(value ="/postImage", method = RequestMethod.POST)//,headers ={"Accept=image/jpeg,image/png"})
     @ResponseBody
-    public ResponseEntity<String> testImage(@RequestParam(value="name", defaultValue="0") final String name,  @RequestParam("file") MultipartFile file){
+    public ResponseEntity<String> testImage(@RequestParam(value="name", defaultValue="0") final String name,@RequestParam(value="name", defaultValue="0") final String description,@RequestParam(value="recipe_id") final Long recipe_id,  @RequestParam("file") MultipartFile file){
     	if (!file.isEmpty()) {
             try {
                 byte[] bytes = file.getBytes();
                 
         		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("add_image")
         				.withoutProcedureColumnMetaDataAccess()
-        				.declareParameters(new SqlParameter("name", Types.VARCHAR),new SqlParameter("image", Types.BLOB),new SqlParameter("format",Types.VARCHAR),  new SqlParameter("size", Types.BIGINT));
-        		SqlParameterSource in = new MapSqlParameterSource().addValue("name",name).addValue("image",bytes).addValue("format", file.getContentType()).addValue("size",file.getSize());
-        	    call.execute(in);             
+        				.declareParameters(new SqlParameter("name", Types.VARCHAR),new SqlParameter("image", Types.BLOB),new SqlParameter("format",Types.VARCHAR),  new SqlParameter("size", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("recipe_id", Types.BIGINT), new SqlOutParameter("image_id", Types.BIGINT));
+        		SqlParameterSource in = new MapSqlParameterSource().addValue("name",name).addValue("image",bytes).addValue("format", file.getContentType()).addValue("size",file.getSize()).addValue("descr",  description).addValue("recipe_id",recipe_id);
+        		Map<String, Object> out =  call.execute(in);  
+        		Long image_id = (Long) out.get("image_id");
               
                 BufferedOutputStream stream =
                         new BufferedOutputStream(new FileOutputStream(new File(name)));
                 //upload the file here!
                 stream.write(bytes);
                 stream.close();
-             	return new ResponseEntity<String>("You successfully uploaded " + name + "!", HttpStatus.OK);
+             	return new ResponseEntity<String>("{\"image_id\": "+image_id+ ",\n\"image_name\":\""+name+"\"}", HttpStatus.OK);
             } catch (Exception e) {
             	System.out.println(e.getMessage());
              	return new ResponseEntity<String>("You failed to upload " + name + " => " + e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -478,6 +479,32 @@ public class Controller {
         } 	
     } 
  
+    
+    @RequestMapping(value = "/getImageIds", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<String> getImageIds(@RequestParam(value="id", defaultValue="0") final long recipe_id)
+    {
+    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  
+
+		List<Long> results = jdbcTemplate.query(
+				  "select image_id from RecipeApp.recipe_images where recipe_id = ?",
+		    	   new PreparedStatementSetter() {
+		             public void setValues(PreparedStatement ps) throws SQLException {
+		                 ps.setLong(1, recipe_id);
+		             }
+		    	   },
+		            new RowMapper<Long>() {
+		                @Override
+		                public Long mapRow(ResultSet rs, int rowNum) throws SQLException {
+		                	return rs.getLong("image_id");
+		                }
+		            }); 		
+		
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.add("Access-Control-Allow-Origin", "*");  
+		return new ResponseEntity<String>(results.toString(),responseHeaders, HttpStatus.OK);  
+    
+    }
     /*
      * Delete full recipe by id (will not delete ingredients)
      */
