@@ -330,6 +330,8 @@ public class Controller {
 			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
 		}
 		
+		System.out.println("\n\n\n ADDED BY"+r.getAddedby());
+		
 		//Insert recipe and get the id needed for the ingredient inserts
 		SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe")
 				.withoutProcedureColumnMetaDataAccess()
@@ -345,7 +347,7 @@ public class Controller {
 		
 		
 		SqlParameterSource recipe_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
-                .addValue("name", r.getTitle()).addValue("descr", r.getDescription()).addValue("time", r.getTime()).addValue("addedby", r.getAddedBy());
+                .addValue("name", r.getTitle()).addValue("descr", r.getDescription()).addValue("time", r.getTime()).addValue("addedby", r.getAddedby());
 
 		Map<String, Object> out = recipeCall.execute(recipe_in);
 		Long recipe_id = (Long)out.get("id");
@@ -354,7 +356,7 @@ public class Controller {
 			Ingredient curr = r.getIngredients().get(i);
 			SqlParameterSource ingredient_in = new MapSqlParameterSource().
 	                addValue("name", curr.getName()).addValue("amount", curr.getAmount()).addValue("recipe_id", recipe_id);
-			ingredientCall.execute(ingredient_in);					
+			//ingredientCall.execute(ingredient_in);					
 		}
 		
 		for(int i = 0; i<r.getSteps().size(); i++){
