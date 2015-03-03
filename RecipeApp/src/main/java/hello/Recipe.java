@@ -155,6 +155,9 @@ public class Recipe implements Comparable<Recipe> {
 		result+="]";
 		
 		if(steps.size()==0){
+			if(match>-1){
+				result+=numMatch();
+			}
 			result+="}";
 			return result;
 		}
@@ -167,14 +170,7 @@ public class Recipe implements Comparable<Recipe> {
 				result+=",";
 			result+="\n";
 		}
-		result+="\n],\n\"addedby\":\""+added_by+"\"";
-				
-		if(match>-1){
-			result+=numMatch();
-			System.out.println("Match rate is here as:\n\n\n\n"+match+"\n\n\n" );
-		}else System.out.println("no MATCH RATE: \n\n\n\n"+match+"\n\n\n");
-		
-		result+="\n}";
+		result+="\n],\n\"addedby\":\""+added_by+"\"\n}";
 		
 		return result;		
 	}
