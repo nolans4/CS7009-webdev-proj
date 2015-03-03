@@ -13,7 +13,8 @@ public class Recipe implements Comparable<Recipe> {
     private String time;
     private List<Ingredient> ingredients;
     private List<RecipeStep> steps;
-    private int num_match;
+    private float match;
+    private String added_by;
     public boolean contains;
 
     public Recipe(){
@@ -23,8 +24,9 @@ public class Recipe implements Comparable<Recipe> {
     	this.description = "";
         this.ingredients = new ArrayList<Ingredient>();
         this.steps = new ArrayList<RecipeStep>();
-        num_match = -1;
+        match = -1;
         contains = false;
+        added_by = "";
     }
     
     public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s) {
@@ -38,8 +40,9 @@ public class Recipe implements Comparable<Recipe> {
         	ingredients.add(i);
         if(s!=null)
         	steps.add(s);
-        num_match =-1;
+        match =-1;
         contains = false;
+        added_by = "";
     }
     
     @Override
@@ -71,6 +74,10 @@ public class Recipe implements Comparable<Recipe> {
 		if (id != other.id)
 			return false;
 		return true;
+	}
+	
+	public void setAddedBy(String ab){
+		this.added_by = ab;
 	}
 
 	public Ingredient getFirstIngredient(){
@@ -107,6 +114,14 @@ public class Recipe implements Comparable<Recipe> {
         return title;
     }
 
+    public void setMatch(float match){
+		this.match=match;
+	}
+    
+    public String getAddedBy(){
+    	return added_by;
+    }
+    
 	public String getTime() {
 		return time;
 	} 
@@ -120,7 +135,7 @@ public class Recipe implements Comparable<Recipe> {
 	}
 	
 	public String numMatch(){
-		return ",\n\"num_match\": "+this.num_match;	
+		return ",\n\"match\": "+this.match;	
 	}
 
 	
@@ -152,8 +167,10 @@ public class Recipe implements Comparable<Recipe> {
 				result+=",";
 			result+="\n";
 		}
-		result+="\n]";
-		if(num_match>=0)
+		result+="\n],\n\"added by\":"+added_by;
+		
+		
+		if(match>=0)
 			result+=numMatch();
 		result+="\n}";
 		

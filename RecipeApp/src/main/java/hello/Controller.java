@@ -125,8 +125,8 @@ public class Controller {
              new RowMapper<Recipe>() {
                  @Override
                  public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
-                 	 Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
-                     return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                 	 Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	                  	 
+                 	 return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                              rs.getString("description"), rs.getString("cooking_time"),i,null);
              }
            });
@@ -156,8 +156,11 @@ public class Controller {
                 public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
-                    return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                    Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                             rs.getString("description"), rs.getString("cooking_time"),i,s);
+                    r.setAddedBy(rs.getString("added_by"));
+                	
+                	return r;
             }
           });
    	
@@ -235,6 +238,7 @@ public class Controller {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                                 rs.getString("description"), rs.getString("cooking_time"),i,null);
+                    	r.setMatch(rs.getFloat("match"));
                     	r.contains = true;
                         return r;
                     }
@@ -331,7 +335,7 @@ public class Controller {
 		//Insert recipe and get the id needed for the ingredient inserts
 		SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe")
 				.withoutProcedureColumnMetaDataAccess()
-				.declareParameters(new SqlParameter("name", Types.VARCHAR), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("time", Types.VARCHAR), new SqlOutParameter("id", Types.BIGINT));
+				.declareParameters(new SqlParameter("name", Types.VARCHAR), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("time", Types.VARCHAR), new SqlParameter("addedby", Types.VARCHAR), new SqlOutParameter("id", Types.BIGINT));
 		
 		SimpleJdbcCall ingredientCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe_ingredient")
 				.withoutProcedureColumnMetaDataAccess()
@@ -343,7 +347,7 @@ public class Controller {
 		
 		
 		SqlParameterSource recipe_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
-                .addValue("name", r.getTitle()).addValue("descr", r.getDescription()).addValue("time", r.getTime());
+                .addValue("name", r.getTitle()).addValue("descr", r.getDescription()).addValue("time", r.getTime()).addValue("addedby", r.getAddedBy());
 
 		Map<String, Object> out = recipeCall.execute(recipe_in);
 		Long recipe_id = (Long)out.get("id");
