@@ -29,7 +29,7 @@ public class Recipe implements Comparable<Recipe> {
         addedby = "";
     }
     
-    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s) {
+    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s, String addedby) {
         this.id = id;
         this.time = time;
         this.description = description;
@@ -42,7 +42,7 @@ public class Recipe implements Comparable<Recipe> {
         	steps.add(s);
         match =-1;
         contains = false;
-        addedby = "";
+        addedby = addedby;
     }
     
     @Override
