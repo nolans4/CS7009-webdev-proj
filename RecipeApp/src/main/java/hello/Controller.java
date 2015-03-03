@@ -356,7 +356,7 @@ public class Controller {
 			Ingredient curr = r.getIngredients().get(i);
 			SqlParameterSource ingredient_in = new MapSqlParameterSource().
 	                addValue("name", curr.getName()).addValue("amount", curr.getAmount()).addValue("recipe_id", recipe_id);
-			//ingredientCall.execute(ingredient_in);					
+			ingredientCall.execute(ingredient_in);					
 		}
 		
 		for(int i = 0; i<r.getSteps().size(); i++){
