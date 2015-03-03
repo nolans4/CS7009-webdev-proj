@@ -347,14 +347,14 @@ public class Controller {
 		SqlParameterSource recipe_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
                 .addValue("name", r.getTitle()).addValue("descr", r.getDescription()).addValue("time", r.getTime()).addValue("addedby", r.getAddedBy());
 
-		/*Map<String, Object> out = recipeCall.execute(recipe_in);
+		Map<String, Object> out = recipeCall.execute(recipe_in);
 		Long recipe_id = (Long)out.get("id");
 		
 		for(int i = 0; i<r.getIngredients().size(); i++){
 			Ingredient curr = r.getIngredients().get(i);
 			SqlParameterSource ingredient_in = new MapSqlParameterSource().
 	                addValue("name", curr.getName()).addValue("amount", curr.getAmount()).addValue("recipe_id", recipe_id);
-			//ingredientCall.execute(ingredient_in);					
+			ingredientCall.execute(ingredient_in);					
 		}
 		
 		for(int i = 0; i<r.getSteps().size(); i++){
@@ -362,7 +362,7 @@ public class Controller {
 			SqlParameterSource step_in = new MapSqlParameterSource().
 	                addValue("step", curr.getStep()).addValue("recipe_id", recipe_id).addValue("description", curr.getDescription());
 			stepCall.execute(step_in);			
-		}	*/	
+		}		
 		
 		//TEST
 		/*SimpleJdbcCall testCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("test_proc").withoutProcedureColumnMetaDataAccess()
@@ -370,7 +370,7 @@ public class Controller {
 		SqlParameterSource in = new MapSqlParameterSource().addValue("id",1);//.addValues(r.getTitle(),r.getDescription(), r.getTime());
 		Map<String, Object> result = testCall.execute(in);
 		System.out.println(result.get("name"));*/
-		//r.setId(recipe_id);
+		r.setId(recipe_id);
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
     	ResponseEntity<String> res = new ResponseEntity<String>(r.toString(),responseHeaders, HttpStatus.OK);
