@@ -45,6 +45,7 @@ public class Recipe implements Comparable<Recipe> {
         if(s!=null)
         	steps.add(s);
         
+        this.imageids = new ArrayList<Long>();
         this.addedby = addedby;
         match =-1;
         contains = false;
