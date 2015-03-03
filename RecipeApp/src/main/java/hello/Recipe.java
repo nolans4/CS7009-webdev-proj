@@ -170,7 +170,7 @@ public class Recipe implements Comparable<Recipe> {
 		result+="\n],\n\"added by\":\""+added_by+"\"";
 		
 		
-		if(match>=0)
+		if(match>-1)
 			result+=numMatch();
 		result+="\n}";
 		
