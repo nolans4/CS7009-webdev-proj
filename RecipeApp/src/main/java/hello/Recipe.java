@@ -171,7 +171,8 @@ public class Recipe implements Comparable<Recipe> {
 				
 		if(match>-1){
 			result+=numMatch();
-		}else System.out.println("MATCH RATE: \n\n\n\n"+match+"\n\n\n");
+			System.out.println("Match rate is here as:\n\n\n\n"+match+"\n\n\n" );
+		}else System.out.println("no MATCH RATE: \n\n\n\n"+match+"\n\n\n");
 		
 		result+="\n}";
 		
