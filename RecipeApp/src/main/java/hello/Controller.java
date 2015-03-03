@@ -238,7 +238,7 @@ public class Controller {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
                                 rs.getString("description"), rs.getString("cooking_time"),i,null);
-                    	r.setMatch(rs.getFloat("match"));
+                    	r.setMatch(rs.getFloat("match_rate"));
                     	r.contains = true;
                         return r;
                     }
