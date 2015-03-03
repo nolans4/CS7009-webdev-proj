@@ -97,6 +97,7 @@ public class Controller {
     		}else{
     			Ingredient next_i = curr.getFirstIngredient();
     			RecipeStep next_s = curr.getFirstStep();
+    			Long next_iid = curr.getFirstImageId();
     			if(!endOfList.getIngredients().contains(next_i)){
     				endOfList.addIngredient(next_i);
     				
@@ -104,6 +105,10 @@ public class Controller {
     			if(!endOfList.getSteps().contains(next_s)){
     				endOfList.addStep(next_s);
     			}
+    			if(!endOfList.getImageids().contains(next_iid)){
+    				endOfList.addImageid(next_iid);
+    			}
+    			
     		}	
     	}
     	 return newList;			
@@ -127,7 +132,7 @@ public class Controller {
                  public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                  	 Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	                  	 
                  	 return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                             rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"));
+                             rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
              }
            });
     	
@@ -144,8 +149,15 @@ public class Controller {
     @RequestMapping("/recipe")
     public ResponseEntity<String> fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
+    	
+     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
+     		+ "FROM full_recipe AS r"
+     		+ "INNER JOIN recipe_images AS ri ON r.recipe_id = ri.recipe_id"
+     		+ "where r.recipe_id = ?";
+    	
+     String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-   	 List<Recipe> result = jdbcTemplate.query("select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id",
+   	 List<Recipe> result = jdbcTemplate.query(sql,
    	   new PreparedStatementSetter() {
             public void setValues(PreparedStatement ps) throws SQLException {
                 ps.setLong(1, id);
@@ -157,7 +169,7 @@ public class Controller {
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"));
+                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),rs.getLong("image_id"));
                 	return r;
             }
           });
@@ -235,7 +247,7 @@ public class Controller {
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"));
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
                     	r.setMatch(rs.getFloat("match_rate"));                    	
                     	r.contains = true;
                         return r;
@@ -282,7 +294,7 @@ public class Controller {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
                     	
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"));
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
                     }
                     
                 });   
@@ -330,7 +342,7 @@ public class Controller {
 			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
 		}
 		
-		System.out.println("\n\n\n ADDED BY"+r.getAddedby());
+		//System.out.println("\n\n\n ADDED BY"+r.getAddedby());
 		
 		//Insert recipe and get the id needed for the ingredient inserts
 		SimpleJdbcCall recipeCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_recipe")

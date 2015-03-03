@@ -33,7 +33,7 @@ public class Recipe implements Comparable<Recipe> {
 
     }
     
-    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s, String addedby) {
+    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s, String addedby, Long image_id) {
         this.id = id;
         this.time = time;
         this.description = description;
@@ -44,6 +44,8 @@ public class Recipe implements Comparable<Recipe> {
         	ingredients.add(i);
         if(s!=null)
         	steps.add(s);
+        if(image_id>=0)
+        	imageids.add(image_id);
         
         this.imageids = new ArrayList<Long>();
         this.addedby = addedby;
@@ -101,6 +103,18 @@ public class Recipe implements Comparable<Recipe> {
     
     public List<RecipeStep> getSteps(){
     	return steps;
+    }
+    
+    public List<Long> getImageids(){
+    	return imageids;
+    }
+    
+    public void addImageId(Long id){
+    	imageids.add(id);
+    }
+    
+    public Long getFirstImageId(){
+    	return imageids.get(0);
     }
     
     
@@ -192,6 +206,10 @@ public class Recipe implements Comparable<Recipe> {
 		result+="\n],\n\"addedby\":\""+addedby+"\"\n}";
 		
 		return result;		
+	}
+
+	public void addImageid(Long next_iid) {
+		this.imageids.add(next_iid);		
 	}
 
 }
