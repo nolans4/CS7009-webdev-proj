@@ -452,7 +452,6 @@ public class Controller {
     @RequestMapping(value ="/postImage", method = RequestMethod.POST)//,headers ={"Accept=image/jpeg,image/png"})
     @ResponseBody
     public ResponseEntity<String> testImage(@RequestParam(value="name", defaultValue="0") final String name,@RequestParam(value="description", defaultValue="0") final String description,@RequestParam(value="recipe_id") final Long recipe_id,  @RequestParam("file") MultipartFile file){
-    	System.out.println("\n\n\n RECIPE ID: "+recipe_id);
     	
     	if (!file.isEmpty()) {
             try {
@@ -460,8 +459,8 @@ public class Controller {
                 
         		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("add_image")
         				.withoutProcedureColumnMetaDataAccess()
-        				.declareParameters(new SqlParameter("name", Types.VARCHAR),new SqlParameter("image", Types.BLOB),new SqlParameter("format",Types.VARCHAR),  new SqlParameter("size", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("recipe_id", Types.BIGINT), new SqlOutParameter("image_id", Types.BIGINT));
-        		SqlParameterSource in = new MapSqlParameterSource().addValue("name",name).addValue("image",bytes).addValue("format", file.getContentType()).addValue("size",file.getSize()).addValue("descr",  description).addValue("recipe_id",recipe_id);
+        				.declareParameters(new SqlParameter("name", Types.VARCHAR),new SqlParameter("image", Types.BLOB),new SqlParameter("format",Types.VARCHAR),  new SqlParameter("size", Types.BIGINT), new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlOutParameter("image_id", Types.BIGINT));
+        		SqlParameterSource in = new MapSqlParameterSource().addValue("name",name).addValue("image",bytes).addValue("format", file.getContentType()).addValue("size",file.getSize()).addValue("recipe_id",recipe_id).addValue("descr",  description);
         		Map<String, Object> out =  call.execute(in);  
         		Long image_id = (Long) out.get("image_id");
               
