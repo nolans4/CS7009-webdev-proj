@@ -367,10 +367,19 @@ public class Controller {
                     }
                     
                 });   
-    	List<Recipe> newList = condenseRecipesIngredients(results); 	
+    	List<Recipe> newList = condenseRecipesIngredients(results); 
+    	
+    	String test="";
+    	try {
+    	test = mapper.writeValueAsString(newList);
+     	} catch (JsonProcessingException e) {
+     		// TODO Auto-generated catch block
+     		e.printStackTrace();
+     	}  	
+    	
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
-    	ResponseEntity<String> res = new ResponseEntity<String>(newList.toString(),responseHeaders, HttpStatus.OK);
+    	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
     	return res; 
     	
     }
