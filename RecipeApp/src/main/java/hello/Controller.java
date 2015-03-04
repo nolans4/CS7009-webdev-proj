@@ -470,7 +470,7 @@ public class Controller {
     @RequestMapping("/randomRecipe")
     public ResponseEntity<String> randomR(){
     	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    	 String random_id_sql = "select recipe_id from recipes order by rand() limit 1";
+    	 String random_id_sql = "select recipe_id from RecipeApp.recipes order by rand() limit 1";
     	 final Long recipe_id=jdbcTemplate.queryForObject(random_id_sql, Long.class);
     	 
          String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
