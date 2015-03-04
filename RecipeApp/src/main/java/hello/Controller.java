@@ -209,90 +209,58 @@ public class Controller {
     /*
      * Retrieve full recipe by id
      */
-    @RequestMapping("/test")
-    public ResponseEntity<String> test(@RequestBody String ingredients){
-    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  	
-    	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
-    	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
-    	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-    	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
-    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    	List<String> names = null;
-    	
-    	try {
-			names = mapper.readValue(ingredients, List.class);
-		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-		String sql = "select * from"
-				+ "	("
-				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate"
-				+ "    from"
-				+ "    ("
-				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, i.ingredient_name"
-				+ "	        from RecipeApp.recipes r, RecipeApp.ingredients i, RecipeApp.recipes_ingredients ri"
-				+ "         where"
-				+ "         ri.recipe_id = r.recipe_id and ri.ingredient_id = i.ingredient_id and"
-				+ "	        (";
-		
-				
-		//add ingredients into sql - change to injection once tested
-		for(int i = 0; i<names.size()-1;i++)
-			sql+= "i.ingredient_name = \""+names.get(i)+"\" OR ";
-
-		sql+= "i.ingredient_name = \""+names.get(names.size()-1)+"\"";
-		sql+= ")"
-				+ " order by recipe_name"
-				+ " ) s"
-				+ " inner join ("
-				+ " select ri.recipe_id, count(ri.ingredient_id) as number_ingredients"
-				+ " from RecipeApp.recipes_ingredients ri"
-				+ " group by recipe_id"
-				+ " ) ni"
-				+ " on s.recipe_id = ni.recipe_id"
-				+ " group by recipe_name"
-				+ " order by match_rate desc, matching, recipe_name"
-				+ "	) m"
-				+ " inner join RecipeApp.recipe_with_ingredients rwi on m.recipe_id = rwi.recipe_id";
-	    	
-        List<Recipe> results = jdbcTemplate.query(
-                sql,
-                new RowMapper<Recipe>() {
-                    @Override
-                    public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
-                    	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
-                    	r.setMatch(rs.getFloat("match_rate"));                    	
-                    	r.contains = true;
-                        return r;
-                    }
+    @RequestMapping(value ="/test", method = RequestMethod.POST)//,headers ={"Accept=image/jpeg,image/png"})
+    @ResponseBody
+    public ResponseEntity<String> test(@RequestBody String image_object){
+        	//System.out.println("Entering post image with name: "+name+" and image size " + file.getSize());
+			ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+			mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+			mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+			mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+			mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+			FileUploadHandler the_image = null;
+			
+			try {
+				the_image = mapper.readValue(image_object, FileUploadHandler.class);
+			} catch (JsonParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JsonMappingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}    	
+        	String name = the_image.getModel().getName();
+        	if (the_image.getFiles().size()>0) {
+                try {
+                	MultipartFile file = the_image.getFiles().get(0);
+                    byte[] bytes = file.getBytes();
+                    ImgModel model = the_image.getModel();
                     
-                });   
-       // SimpleBeanPropertyFilter theFilter = SimpleBeanPropertyFilter.serializeAllExcept("intValue");
-       // FilterProvider filters = new SimpleFilterProvider().addFilter("myFilter", theFilter);
-    	List<Recipe> newList = condenseRecipesIngredients(results); 	
-    	String test="";
-    	try {
-    	test = mapper.writeValueAsString(newList);
-     	} catch (JsonProcessingException e) {
-     		// TODO Auto-generated catch block
-     		e.printStackTrace();
-     	}  	
-    
-    	HttpHeaders responseHeaders = new HttpHeaders();
-    	responseHeaders.add("Access-Control-Allow-Origin", "*");
-    	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
-    	return res; 
-    }    
+            		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("add_image")
+            				.withoutProcedureColumnMetaDataAccess()
+            				.declareParameters(new SqlParameter("name", Types.VARCHAR),new SqlParameter("image", Types.BLOB),new SqlParameter("format",Types.VARCHAR),  new SqlParameter("size", Types.BIGINT), new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlOutParameter("image_id", Types.BIGINT));
+            		SqlParameterSource in = new MapSqlParameterSource().addValue("name",model.getName()).addValue("image",bytes).addValue("format", file.getContentType()).addValue("size",file.getSize()).addValue("recipe_id",model.getRecipeid()).addValue("descr",  model.getDescription());
+            		Map<String, Object> out =  call.execute(in);  
+            		Long image_id = (Long) out.get("image_id");
+                  
+                    /*BufferedOutputStream stream =
+                            new BufferedOutputStream(new FileOutputStream(new File(name)));
+                    //upload the file here!
+                    stream.write(bytes);
+                    stream.close();*/
+                 	return new ResponseEntity<String>("{\"image_id\": "+image_id+ ",\n\"image_name\":\""+name+"\"}", HttpStatus.OK);
+                } catch (Exception e) {
+                	System.out.println(e.getMessage());
+                 	return new ResponseEntity<String>("You failed to upload " + name + " => " + e.getMessage(), HttpStatus.BAD_REQUEST);
+                }
+            } else {
+            	System.out.println("Not working");
+             	return new ResponseEntity<String>("You failed to upload " + name + " because the file was empty.", HttpStatus.NO_CONTENT);
+            }
+    }
     
     /*
      * Retrieve recipes ranked by ingredients passed
