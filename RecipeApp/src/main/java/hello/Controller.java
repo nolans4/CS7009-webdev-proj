@@ -185,7 +185,9 @@ public class Controller {
                 	return r;
             }
           });
-   	
+   	if(result.size()<0){
+   		return new ResponseEntity<String>("Recipe with "+id+" does not exist",HttpStatus.NO_CONTENT);  		
+   	}
 
    	 
    	List<Recipe> newList = condenseFullRecipe(result);
