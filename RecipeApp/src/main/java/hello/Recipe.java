@@ -44,10 +44,11 @@ public class Recipe implements Comparable<Recipe> {
         	ingredients.add(i);
         if(s!=null)
         	steps.add(s);
+        this.imageids = new ArrayList<Long>();
         if(image_id!=null&&image_id>=0)
         	imageids.add(image_id);
         
-        this.imageids = new ArrayList<Long>();
+
         this.addedby = addedby;
         match =-1;
         contains = false;
