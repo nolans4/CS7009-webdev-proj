@@ -184,7 +184,19 @@ public class Controller {
             }
           });
    	
+
+   	 
    	List<Recipe> newList = condenseFullRecipe(result);
+	//json mapper
+	ObjectMapper mapper = new ObjectMapper();
+	String test="";
+	try {
+	test = mapper.writeValueAsString(newList);
+ 	} catch (JsonProcessingException e) {
+ 		// TODO Auto-generated catch block
+ 		e.printStackTrace();
+ 	} 
+   	
 	HttpHeaders responseHeaders = new HttpHeaders();
 	responseHeaders.add("Access-Control-Allow-Origin", "*");
 	ResponseEntity<String> res = new ResponseEntity<String>(newList.get(0).toString(),responseHeaders, HttpStatus.OK);
@@ -230,7 +242,7 @@ public class Controller {
    	ObjectMapper mapper = new ObjectMapper();
    	String test="";
    	try {
-		test = mapper.writeValueAsString(newList);
+		test = mapper.writeValueAsString(newList.get(0));
 	} catch (JsonProcessingException e) {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
