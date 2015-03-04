@@ -157,7 +157,7 @@ public class Controller {
     	
      String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-   	 List<Recipe> result = jdbcTemplate.query(sql,
+   	 List<Recipe> result = jdbcTemplate.query(other,
    	   new PreparedStatementSetter() {
             public void setValues(PreparedStatement ps) throws SQLException {
                 ps.setLong(1, id);
@@ -167,8 +167,9 @@ public class Controller {
                 @Override
                 public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                 	//check if image id is null
-                	Long image = (Long)rs.getObject("image_id");
-                	if(image==null) image = -1L;
+                	//Long image = (Long)rs.getObject("image_id");
+                	//if(image==null) image = -1L;
+                	Long image = -1L;
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
