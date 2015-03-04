@@ -151,8 +151,8 @@ public class Controller {
     	//Get recipe
     	
      String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
-     		+ " FROM full_recipe AS r"
-     		+ " INNER JOIN recipe_images AS ri ON r.recipe_id = ri.recipe_id"
+     		+ " FROM RecipeApp.full_recipe AS r"
+     		+ " INNER JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
      		+ " where r.recipe_id = ?";
     	
      String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
