@@ -42,6 +42,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -274,10 +277,12 @@ public class Controller {
                     }
                     
                 });   
+       // SimpleBeanPropertyFilter theFilter = SimpleBeanPropertyFilter.serializeAllExcept("intValue");
+       // FilterProvider filters = new SimpleFilterProvider().addFilter("myFilter", theFilter);
     	List<Recipe> newList = condenseRecipesIngredients(results); 	
     	String test="";
     	try {
-    	test = mapper.writeValueAsString(newList.get(0)).replaceFirst("ingredients:", "contains:");
+    	test = mapper.writeValueAsString(newList);
      	} catch (JsonProcessingException e) {
      		// TODO Auto-generated catch block
      		e.printStackTrace();

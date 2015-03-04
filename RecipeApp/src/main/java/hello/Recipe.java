@@ -149,6 +149,10 @@ public class Recipe implements Comparable<Recipe> {
 		this.match=match;
 	}
     
+    public float getMatch(){
+    	return match;
+    }
+    
     public String getAddedby(){
     	return addedby;
     }
