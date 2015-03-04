@@ -467,6 +467,41 @@ public class Controller {
      	return res;
      }
     
+    @RequestMapping("/randomRecipe")
+    public ResponseEntity<String> randomR(){
+    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    	 
+    	  String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
+    	     		+ " FROM RecipeApp.full_recipe AS r"
+    	     		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
+    	     		+ " ORDER BY RAND() LIMIT 1";
+    	 /*String sql = "SELECT * FROM RecipeApp.full_recipe WHERE 1"
+    	 		+ "    			 ORDER BY RAND()"
+    	 		+ "    			 LIMIT 1";*/
+    	 
+         List<Recipe> results = jdbcTemplate.query(
+                 sql,
+                 new RowMapper<Recipe>() {
+                     @Override
+                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
+                     	//check if image id is null
+                     	Long image = (Long)rs.getObject("image_id");
+                     	System.out.println("\n\n"+image);
+                     	if(image==null) image = -1L;
+                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
+                     	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
+                         Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                                 rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image);
+                     	return r;
+                     }
+               });
+        	
+        List<Recipe> newList = condenseFullRecipe(results);
+     	HttpHeaders responseHeaders = new HttpHeaders();
+     	responseHeaders.add("Access-Control-Allow-Origin", "*");
+     	ResponseEntity<String> res = new ResponseEntity<String>(newList.get(0).toString(),responseHeaders, HttpStatus.OK);
+     	return res;
+     }
     
     /*
      * Send an image
@@ -559,8 +594,6 @@ public class Controller {
 		responseHeaders.add("Access-Control-Allow-Origin", "*");  
 		responseHeaders.add("Content-Type",results.get(0).getContenttype());
 		return new ResponseEntity<byte[]>(data,responseHeaders, HttpStatus.OK);
-    	
- 	
     }
     
 }
