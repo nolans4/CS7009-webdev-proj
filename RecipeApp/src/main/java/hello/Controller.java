@@ -191,7 +191,7 @@ public class Controller {
 	ObjectMapper mapper = new ObjectMapper();
 	String test="";
 	try {
-	test = mapper.writeValueAsString(newList);
+	test = mapper.writeValueAsString(newList.get(0));
  	} catch (JsonProcessingException e) {
  		// TODO Auto-generated catch block
  		e.printStackTrace();
@@ -199,7 +199,7 @@ public class Controller {
    	
 	HttpHeaders responseHeaders = new HttpHeaders();
 	responseHeaders.add("Access-Control-Allow-Origin", "*");
-	ResponseEntity<String> res = new ResponseEntity<String>(newList.get(0).toString(),responseHeaders, HttpStatus.OK);
+	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
 	return res;    	    	
     }
     
@@ -207,51 +207,38 @@ public class Controller {
      * Retrieve full recipe by id
      */
     @RequestMapping("/test")
-    public ResponseEntity<String> test(@RequestParam(value="id", defaultValue="0") final long id){
-    	//Get recipe
+    public ResponseEntity<String> test(){
+    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     	
-     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
-     		+ " FROM RecipeApp.full_recipe AS r"
-     		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
-     		+ " where r.recipe_id = ?";
-    	
-     String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
-   	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-   	 List<Recipe> result = jdbcTemplate.query(sql,
-   	   new PreparedStatementSetter() {
-            public void setValues(PreparedStatement ps) throws SQLException {
-                ps.setLong(1, id);
-            }
-   	   },
-            new RowMapper<Recipe>() {
-                @Override
-                public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
-                	//check if image id is null
-                	Long image = (Long)rs.getObject("image_id");
-                	if(image==null) image = -1L;
-                	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
-                	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
-                    Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image);
-                	return r;
-            }
-          });
-   	List<Recipe> newList = condenseFullRecipe(result);
-   	
-   	//json mapper
-   	ObjectMapper mapper = new ObjectMapper();
-   	String test="";
-   	try {
-		test = mapper.writeValueAsString(newList.get(0));
-	} catch (JsonProcessingException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
-   	
-	HttpHeaders responseHeaders = new HttpHeaders();
-	responseHeaders.add("Access-Control-Allow-Origin", "*");
-	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
-	return res;    	    	
+        System.out.println("Querying for all recipes");
+        List<Recipe> results = jdbcTemplate.query(
+                "select * from RecipeApp.recipe_with_ingredients order by recipe_id",
+                new RowMapper<Recipe>() {
+                    @Override
+                    public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
+                    	
+                        return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
+                    }
+                    
+                });   
+    	List<Recipe> newList = condenseRecipesIngredients(results);
+
+	   	//json mapper
+	   	ObjectMapper mapper = new ObjectMapper();
+	   	String test="";
+	   	try {
+			test = mapper.writeValueAsString(newList);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	   	
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.add("Access-Control-Allow-Origin", "*");
+		ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
+		return res;    	    	
     }    
     
     /*
