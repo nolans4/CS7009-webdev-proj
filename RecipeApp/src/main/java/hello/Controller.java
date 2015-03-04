@@ -609,7 +609,7 @@ public class Controller {
      */
     @RequestMapping(value ="/postImage", method = RequestMethod.POST)//,headers ={"Accept=image/jpeg,image/png"})
     @ResponseBody
-    public ResponseEntity<String> testImage(@RequestParam(value="name", defaultValue="0") final String name,@RequestParam(value="description", defaultValue="0") final String description,@RequestParam(value="recipe_id") final Long recipe_id,  @RequestParam("file") MultipartFile file){
+    public ResponseEntity<String> testImage(@RequestParam(value="name", defaultValue=" ") final String name,@RequestParam(value="description", defaultValue=" ") final String description,@RequestParam(value="recipe_id") final Long recipe_id,  @RequestParam("file") MultipartFile file){
     	System.out.println("Entering post image with name: "+name+" and image size " + file.getSize() + " description: "+description+ " recipe_id: "+recipe_id);
     	if (!file.isEmpty()) {
             try {
@@ -661,7 +661,7 @@ public class Controller {
 		
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.add("Access-Control-Allow-Origin", "*");  
-		return new ResponseEntity<String>(results.toString(),responseHeaders, HttpStatus.OK);  
+		return new ResponseEntity<String>(results.get(0).toString(),responseHeaders, HttpStatus.OK);  
     
     }
     /*
