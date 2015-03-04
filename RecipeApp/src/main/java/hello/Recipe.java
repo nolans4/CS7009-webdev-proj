@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties({"contains","hasSteps","hasImages","hasImages","firstIngredient","firstStep","fistImageId"})
+@JsonIgnoreProperties({"contains","hasSteps","hasImages","hasIngredients","firstIngredient","firstStep","firstImageId"})
 public class Recipe implements Comparable<Recipe> {
     private long id;
     private String title;

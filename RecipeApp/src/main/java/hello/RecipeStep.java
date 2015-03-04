@@ -2,7 +2,7 @@ package hello;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties({"recipe_id"})
+@JsonIgnoreProperties({"recipeId"})
 public class RecipeStep implements Comparable<RecipeStep> {
 	private final int step; //use this as an id combined with recipeID
 	private final long recipeId;
