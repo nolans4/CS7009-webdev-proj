@@ -207,38 +207,86 @@ public class Controller {
      * Retrieve full recipe by id
      */
     @RequestMapping("/test")
-    public ResponseEntity<String> test(){
-    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    public ResponseEntity<String> test(@RequestBody String ingredients){
+    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);  	
+    	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+    	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+    	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+    	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    	List<String> names = null;
     	
-        System.out.println("Querying for all recipes");
-        List<Recipe> results = jdbcTemplate.query(
-                "select * from RecipeApp.recipe_with_ingredients order by recipe_id",
-                new RowMapper<Recipe>() {
-                    @Override
-                    public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
-                    	
-                        return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
-                    }
-                    
-                });   
-    	List<Recipe> newList = condenseRecipesIngredients(results);
-
-	   	//json mapper
-	   	ObjectMapper mapper = new ObjectMapper();
-	   	String test="";
-	   	try {
-			test = mapper.writeValueAsString(newList);
-		} catch (JsonProcessingException e) {
+    	try {
+			names = mapper.readValue(ingredients, List.class);
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	   	
-		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.add("Access-Control-Allow-Origin", "*");
-		ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
-		return res;    	    	
+    	
+		String sql = "select * from"
+				+ "	("
+				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate"
+				+ "    from"
+				+ "    ("
+				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, i.ingredient_name"
+				+ "	        from RecipeApp.recipes r, RecipeApp.ingredients i, RecipeApp.recipes_ingredients ri"
+				+ "         where"
+				+ "         ri.recipe_id = r.recipe_id and ri.ingredient_id = i.ingredient_id and"
+				+ "	        (";
+		
+				
+		//add ingredients into sql - change to injection once tested
+		for(int i = 0; i<names.size()-1;i++)
+			sql+= "i.ingredient_name = \""+names.get(i)+"\" OR ";
+
+		sql+= "i.ingredient_name = \""+names.get(names.size()-1)+"\"";
+		sql+= ")"
+				+ " order by recipe_name"
+				+ " ) s"
+				+ " inner join ("
+				+ " select ri.recipe_id, count(ri.ingredient_id) as number_ingredients"
+				+ " from RecipeApp.recipes_ingredients ri"
+				+ " group by recipe_id"
+				+ " ) ni"
+				+ " on s.recipe_id = ni.recipe_id"
+				+ " group by recipe_name"
+				+ " order by match_rate desc, matching, recipe_name"
+				+ "	) m"
+				+ " inner join RecipeApp.recipe_with_ingredients rwi on m.recipe_id = rwi.recipe_id";
+	    	
+        List<Recipe> results = jdbcTemplate.query(
+                sql,
+                new RowMapper<Recipe>() {
+                    @Override
+                    public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
+                    	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
+                    	r.setMatch(rs.getFloat("match_rate"));                    	
+                    	r.contains = true;
+                        return r;
+                    }
+                    
+                });   
+    	List<Recipe> newList = condenseRecipesIngredients(results); 	
+    	String test="";
+    	try {
+    	test = mapper.writeValueAsString(newList.get(0)).replaceFirst("ingredients:", "contains:");
+     	} catch (JsonProcessingException e) {
+     		// TODO Auto-generated catch block
+     		e.printStackTrace();
+     	}  	
+    
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
+    	return res; 
     }    
     
     /*
@@ -359,9 +407,20 @@ public class Controller {
                     
                 });   
     	List<Recipe> newList = condenseRecipesIngredients(results);
+    	
+	   	//json mapper
+	   	ObjectMapper mapper = new ObjectMapper();
+	   	String test="";
+	   	try {
+			test = mapper.writeValueAsString(newList);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
-    	ResponseEntity<String> res = new ResponseEntity<String>(newList.toString(),responseHeaders, HttpStatus.OK);
+    	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
     	return res; 
     }
     
