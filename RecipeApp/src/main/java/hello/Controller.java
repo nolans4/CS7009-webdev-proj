@@ -548,7 +548,6 @@ public class Controller {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.add("Access-Control-Allow-Origin", "*");  
 		responseHeaders.add("Content-Type",results.get(0).getContenttype());
-		responseHeaders.add("Content-Disposition:attachment;filename",results.get(0).getName());
 		return new ResponseEntity<byte[]>(data,responseHeaders, HttpStatus.OK);
     	
  	
