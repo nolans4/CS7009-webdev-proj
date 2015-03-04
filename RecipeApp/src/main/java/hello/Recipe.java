@@ -170,7 +170,7 @@ public class Recipe implements Comparable<Recipe> {
 	}
 
 	
-	public String toString(){
+	public String toString(){		
 		String result = "{\n\"id\": "+this.id + ",\n\"title\": \""+this.title+"\",\n\"description\": \""+this.description+
 				"\",\n\"time\": \""+this.time+"\"";
 		if(contains)

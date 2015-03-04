@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,7 +71,7 @@ public class Controller {
     	for(int i = 1; i<result.size();i++){
     		Recipe curr = result.get(i);
     		Recipe endOfList = newList.get(newList.size()-1); 		
-    		//if we have a new recipe to add the id will be greater than the last recipe in the list
+    		//if we have a new recipe
     		if(curr.compareTo(endOfList)!=0){
     			newList.add(curr);
     		}else{
@@ -85,7 +86,6 @@ public class Controller {
 	public List<Recipe> condenseFullRecipe(List<Recipe> result){
     	List<Recipe> newList = new ArrayList<Recipe>();    	
     	if(result.size()==0)return result;
-    	//Collections.sort(result);
     	newList.add(result.get(0));
     	//go through list adding to new list 
     	for(int i = 1; i<result.size();i++){
@@ -190,6 +190,58 @@ public class Controller {
 	ResponseEntity<String> res = new ResponseEntity<String>(newList.get(0).toString(),responseHeaders, HttpStatus.OK);
 	return res;    	    	
     }
+    
+    /*
+     * Retrieve full recipe by id
+     */
+    @RequestMapping("/test")
+    public ResponseEntity<String> test(@RequestParam(value="id", defaultValue="0") final long id){
+    	//Get recipe
+    	
+     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
+     		+ " FROM RecipeApp.full_recipe AS r"
+     		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
+     		+ " where r.recipe_id = ?";
+    	
+     String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
+   	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+   	 List<Recipe> result = jdbcTemplate.query(sql,
+   	   new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setLong(1, id);
+            }
+   	   },
+            new RowMapper<Recipe>() {
+                @Override
+                public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
+                	//check if image id is null
+                	Long image = (Long)rs.getObject("image_id");
+                	System.out.println("\n\n"+image);
+                	if(image==null) image = -1L;
+                	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
+                	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
+                    Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
+                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image);
+                	return r;
+            }
+          });
+   	List<Recipe> newList = condenseFullRecipe(result);
+   	
+   	//json mapper
+   	ObjectMapper mapper = new ObjectMapper();
+   	String test="";
+   	try {
+		test = mapper.writeValueAsString(newList);
+	} catch (JsonProcessingException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+   	
+	HttpHeaders responseHeaders = new HttpHeaders();
+	responseHeaders.add("Access-Control-Allow-Origin", "*");
+	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
+	return res;    	    	
+    }    
     
     /*
      * Retrieve recipes ranked by ingredients passed
