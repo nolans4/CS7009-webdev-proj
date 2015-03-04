@@ -1,5 +1,8 @@
 package hello;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties({"id"})
 public class Ingredient implements Comparable<Ingredient> {
 	private final long id;
 	private final String name;
