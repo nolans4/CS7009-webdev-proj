@@ -167,8 +167,8 @@ public class Controller {
                 @Override
                 public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                 	//check if image id is null
-                	Long image = rs.getLong("image_id");
-                	if(rs.wasNull()) image = -1L;
+                	Long image = (Long)rs.getObject("image_id");
+                	if(image==null) image = -1L;
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
