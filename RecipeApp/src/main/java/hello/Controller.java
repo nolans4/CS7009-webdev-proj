@@ -212,6 +212,7 @@ public class Controller {
     @RequestMapping(value ="/test", method = RequestMethod.POST)//,headers ={"Accept=image/jpeg,image/png"})
     @ResponseBody
     public ResponseEntity<String> test(@RequestBody String image_object){
+    	    System.out.println("\n\n"+image_object+"\n\n");
         	//System.out.println("Entering post image with name: "+name+" and image size " + file.getSize());
 			ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 			mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
@@ -228,9 +229,12 @@ public class Controller {
 			} catch (JsonMappingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+             	return new ResponseEntity<String>(image_object, HttpStatus.BAD_REQUEST);
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return new ResponseEntity<String>(image_object, HttpStatus.BAD_REQUEST);
 			}    	
         	String name = the_image.getModel().getName();
         	if (the_image.getFiles().size()>0) {
