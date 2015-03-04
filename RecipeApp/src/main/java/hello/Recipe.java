@@ -208,7 +208,7 @@ public class Recipe implements Comparable<Recipe> {
 			for(int i = 0; i<imageids.size(); i++){
 				
 				result+=imageids.get(i);
-				if(i!=steps.size()-1)
+				if(i!=imageids.size()-1)
 					result+=",";
 				result+="\n";
 			}
