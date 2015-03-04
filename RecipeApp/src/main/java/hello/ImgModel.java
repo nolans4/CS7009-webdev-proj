@@ -5,6 +5,12 @@ public class ImgModel {
 	private String name;
 	private Long recipeid;
 	
+	public ImgModel(){
+		this.description = "";
+		this.name = "";
+		this.recipeid = -1L;
+	}
+	
 	public ImgModel(String description, String name, Long recipeid){
 		this.description = description;
 		this.name = name;
