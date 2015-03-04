@@ -474,7 +474,7 @@ public class Controller {
     	  String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
     	     		+ " FROM RecipeApp.full_recipe AS r"
     	     		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
-    	     		+ " ORDER BY RAND() LIMIT 1";
+    	     		+ " ORDER BY RAND()";
     	 /*String sql = "SELECT * FROM RecipeApp.full_recipe WHERE 1"
     	 		+ "    			 ORDER BY RAND()"
     	 		+ "    			 LIMIT 1";*/
