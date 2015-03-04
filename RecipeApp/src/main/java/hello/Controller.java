@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -166,6 +167,8 @@ public class Controller {
     	
      String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+   	 
+   	 try{
    	 List<Recipe> result = jdbcTemplate.query(sql,
    	   new PreparedStatementSetter() {
             public void setValues(PreparedStatement ps) throws SQLException {
@@ -185,9 +188,6 @@ public class Controller {
                 	return r;
             }
           });
-   	if(result.size()<0){
-   		return new ResponseEntity<String>("Recipe with "+id+" does not exist",HttpStatus.NO_CONTENT);  		
-   	}
 
    	 
    	List<Recipe> newList = condenseFullRecipe(result);
@@ -204,7 +204,10 @@ public class Controller {
 	HttpHeaders responseHeaders = new HttpHeaders();
 	responseHeaders.add("Access-Control-Allow-Origin", "*");
 	ResponseEntity<String> res = new ResponseEntity<String>(test,responseHeaders, HttpStatus.OK);
-	return res;    	    	
+	return res;   
+   	 }catch (EmptyResultDataAccessException e) {
+   		return new ResponseEntity<String>("Recipe with "+id+" does not exist",HttpStatus.NO_CONTENT);  
+   	 }
     }
     
     /*
