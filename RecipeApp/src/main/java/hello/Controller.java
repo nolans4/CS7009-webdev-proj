@@ -177,7 +177,6 @@ public class Controller {
                 public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                 	//check if image id is null
                 	Long image = (Long)rs.getObject("image_id");
-                	System.out.println("\n\n"+image);
                 	if(image==null) image = -1L;
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
@@ -585,7 +584,6 @@ public class Controller {
                  public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                  	//check if image id is null
                  	Long image = (Long)rs.getObject("image_id");
-                 	System.out.println("\n\n"+image);
                  	if(image==null) image = -1L;
                  	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                  	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
