@@ -17,7 +17,7 @@ public class Recipe implements Comparable<Recipe> {
     private String addedby;
     private float match;
 
-    public boolean contains;
+    public boolean contains, hasSteps, hasIngredients, hasImages;
 
     public Recipe(){
     	this.id = -1;
@@ -30,6 +30,9 @@ public class Recipe implements Comparable<Recipe> {
         this.addedby = "";
         match = -1;
         contains = false;
+        hasIngredients = false;
+        hasSteps = false;
+        hasImages = false;
 
     }
     
@@ -40,13 +43,19 @@ public class Recipe implements Comparable<Recipe> {
         this.title = title;
         ingredients = new ArrayList<Ingredient>();
         steps = new ArrayList<RecipeStep>();
-        if(i!=null)
-        	ingredients.add(i);
-        if(s!=null)
-        	steps.add(s);
         this.imageids = new ArrayList<Long>();
-        if(image_id!=null&&image_id>=0)
+        if(i!=null){
+        	ingredients.add(i);
+        	hasIngredients=true;
+        }else hasIngredients = false;
+        if(s!=null){
+        	steps.add(s);
+        	hasSteps = true;
+        }else hasSteps = false;
+        if(image_id!=null&&image_id>=0){
         	imageids.add(image_id);
+        	hasImages = true;
+        }else hasImages = false;
         
 
         this.addedby = addedby;

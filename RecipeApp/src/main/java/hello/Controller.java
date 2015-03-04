@@ -84,7 +84,7 @@ public class Controller {
 	 */
 	public List<Recipe> condenseFullRecipe(List<Recipe> result){
     	List<Recipe> newList = new ArrayList<Recipe>();    	
-    	
+    	if(result.size()==0)return result;
     	//Collections.sort(result);
     	newList.add(result.get(0));
     	//go through list adding to new list 
@@ -95,20 +95,26 @@ public class Controller {
     		if(curr.compareTo(endOfList)!=0){
     			newList.add(curr);
     		}else{
-    			Ingredient next_i = curr.getFirstIngredient();
-    			RecipeStep next_s = curr.getFirstStep();
-    			Long next_iid = curr.getFirstImageId();
-    			if(!endOfList.getIngredients().contains(next_i)){
-    				endOfList.addIngredient(next_i);
-    				
-    			}
-    			if(!endOfList.getSteps().contains(next_s)){
-    				endOfList.addStep(next_s);
-    			}
-    			if(!endOfList.getImageids().contains(next_iid)){
-    				endOfList.addImageid(next_iid);
-    			}
     			
+    			if(curr.hasIngredients){
+	    			Ingredient next_i = curr.getFirstIngredient();    			
+	    			if(!endOfList.getIngredients().contains(next_i)){
+	    				endOfList.addIngredient(next_i);
+	    				
+	    			}
+    			}
+    			if(curr.hasSteps){
+	    			RecipeStep next_s = curr.getFirstStep();
+	    			if(!endOfList.getSteps().contains(next_s)){
+	    				endOfList.addStep(next_s);
+	    			}
+    			}
+    			if(curr.hasImages){
+	    			Long next_iid = curr.getFirstImageId();
+	    			if(!endOfList.getImageids().contains(next_iid)){
+	    				endOfList.addImageid(next_iid);
+	    			}
+    			}
     		}	
     	}
     	 return newList;			
