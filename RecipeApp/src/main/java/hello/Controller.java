@@ -506,7 +506,7 @@ public class Controller {
     public ResponseEntity<String> deleteRecipe(@RequestParam(value="id", defaultValue="0") final long id){
 		SimpleJdbcCall call = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("delete_recipe")
 				.withoutProcedureColumnMetaDataAccess()
-				.declareParameters(new SqlParameter("id", Types.BIGINT));
+				.declareParameters(new SqlParameter("id", Types.BIGINT), new SqlOutParameter("delete_id", Types.BIGINT));
 		SqlParameterSource in = new MapSqlParameterSource().addValue("id",id);
 	    call.execute(in);
     	HttpHeaders responseHeaders = new HttpHeaders();
