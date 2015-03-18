@@ -502,15 +502,17 @@ public class Controller {
 		}    
 		SimpleJdbcCall ratingCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_rating")
 				.withoutProcedureColumnMetaDataAccess()
-				.declareParameters(new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("added_by", Types.VARCHAR), new SqlParameter("rating", Types.DOUBLE));
+				.declareParameters(new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("added_by", Types.VARCHAR), new SqlParameter("rating", Types.DOUBLE), new SqlOutParameter("avg_rating", Types.DOUBLE));
 
 		SqlParameterSource rating_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
         .addValue("recipe_id", r.getRecipeId()).addValue("descr", r.getDescription()).addValue("added_by", r.getAddedBy()).addValue("rating", r.getRating());
 
-		ratingCall.execute(rating_in);
+		Map<String, Object> out= ratingCall.execute(rating_in);  
+		Double avg = (Double) out.get("avg_rating");
+		
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
-    	ResponseEntity<String> res = new ResponseEntity<String>(r.toString(),responseHeaders, HttpStatus.OK);
+    	ResponseEntity<String> res = new ResponseEntity<String>(""+avg,responseHeaders, HttpStatus.OK);
     	return res; 		
 		
     }
