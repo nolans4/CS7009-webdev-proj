@@ -230,8 +230,6 @@ public class Controller {
                 	//check if image id is null
                 	Long image = (Long)rs.getObject("image_id");
                 	if(image==null) image = -1L;
-                	Double rating = 0.0;
-                	rating = rs.getDouble("avg_rating");
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
@@ -354,7 +352,7 @@ public class Controller {
 				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate"//, AVG(ra.rating) AS avg_rating"
 				+ "    from"
 				+ "    ("
-				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, i.ingredient_name"
+				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, r.avg_rating, i.ingredient_name"
 				+ "	        from RecipeApp.recipes r, RecipeApp.ingredients i, RecipeApp.recipes_ingredients ri"
 				+ "         where"
 				+ "         ri.recipe_id = r.recipe_id and ri.ingredient_id = i.ingredient_id and"
@@ -391,10 +389,9 @@ public class Controller {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
-                    	Double rating = 0.0;
-                    	//rating =  rs.getDouble("avg_rating");
+        
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L,rating);
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L,rs.getDouble("avg_rating"));
                     	r.setMatch(rs.getFloat("match_rate"));                    	
                     	r.contains = true;
                         return r;
@@ -440,19 +437,7 @@ public class Controller {
     @RequestMapping("/recipes")
     public ResponseEntity<String> allRecipes(){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    	String SQL = "SELECT s.recipe_id, s.recipe_name, s.description, s.cooking_time, s.ingredient_name, s.amount, s.added_by, AVG(ra.rating) AS avg_rating from "
-    			+ "("
-    			+ "    select *"
-    			+ "    from RecipeApp.recipe_with_ingredients r"
-    			+ "    order by recipe_name"
-    			+ "    ) s"
-    			+ " left join ("
-    			+ "  select recipe_id, rating"
-    			+ "  from RecipeApp.ratings"
-    			+ ") ra"
-    			+ " on s.recipe_id = ra.recipe_id"
-    			+ " group by s.recipe_id";
-    	SQL = "SELECT * from RecipeApp.recipe_with_ingredients";
+    	String SQL = "SELECT * from RecipeApp.recipe_with_ingredients";
         System.out.println("Querying for all recipes");
         List<Recipe> results = jdbcTemplate.query(
                 SQL,
@@ -460,10 +445,8 @@ public class Controller {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
-                    	Double rating = 0.0;
-                    	//rating =  rs.getDouble("avg_rating");
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rating);
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rs.getDouble("avg_rating"));
                     }
                     
                 });   
