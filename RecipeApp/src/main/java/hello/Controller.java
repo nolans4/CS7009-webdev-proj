@@ -159,6 +159,60 @@ public class Controller {
     	return res; 	    	
     }
     
+    @RequestMapping(value ="/ratingExists", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
+    @ResponseBody
+    public ResponseEntity<String> checkRating(@RequestBody String rating){
+    	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+    	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+    	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+    	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);    
+
+    	Rating rat=null;
+		try {
+			rat = mapper.readValue(rating, Rating.class);
+			//System.out.println("Recipe "+r.toString());
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+		}    
+    	final Rating r = rat;
+    	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);    	
+    	String sql = "SELECT rating from RecipeApp.ratings where recipe_id = ? AND rated_by = ?";
+    	List<Rating> res = jdbcTemplate.query(sql,
+    	  new PreparedStatementSetter() {
+            public void setValues(PreparedStatement ps) throws SQLException {
+                ps.setLong(1, r.getRecipeId());
+                ps.setLong(2, r.getAddedBy());
+            }
+   	      },
+          new RowMapper<Rating>() {
+            @Override
+            public Rating mapRow(ResultSet rs, int rowNum) throws SQLException, DataAccessException {
+            	return new Rating();
+        }
+      });   			
+      boolean exists = false;		
+      if(res.size()>0){
+    	  exists = true;   	  
+      }
+	  	HttpHeaders responseHeaders = new HttpHeaders();
+	  	responseHeaders.add("Access-Control-Allow-Origin", "*");
+	  	ResponseEntity<String> resp = new ResponseEntity<String>(""+exists,responseHeaders, HttpStatus.OK);
+	  	return resp;  	
+    }
+    
+    
+    
     @RequestMapping("/ratings")
     public ResponseEntity<String> getRatings(@RequestParam(value="id", defaultValue="0") final long id) {
     	//Get recipe
