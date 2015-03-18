@@ -350,7 +350,7 @@ public class Controller {
     	
 		String sql = "select * from"
 				+ "	("
-				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate, AVG(ra.rating) AS avg_rating"
+				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate"//, AVG(ra.rating) AS avg_rating"
 				+ "    from"
 				+ "    ("
 				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, i.ingredient_name"
