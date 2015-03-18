@@ -437,8 +437,7 @@ public class Controller {
     @RequestMapping("/recipes")
     public ResponseEntity<String> allRecipes(){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    	String SQL = "create view all_recipes as "
-    			+ "(SELECT s.recipe_id, s.recipe_name, s.description, s.cooking_time, s.ingredient_name, s.amount, s.added_by, AVG(ra.rating) AS avg_rating from "
+    	String SQL = "SELECT s.recipe_id, s.recipe_name, s.description, s.cooking_time, s.ingredient_name, s.amount, s.added_by, AVG(ra.rating) AS avg_rating from "
     			+ "("
     			+ "    select *"
     			+ "    from recipe_with_ingredients r"
@@ -449,7 +448,7 @@ public class Controller {
     			+ "  from ratings"
     			+ ") ra"
     			+ " on s.recipe_id = ra.recipe_id"
-    			+ " group by s.recipe_id)";
+    			+ " group by s.recipe_id";
         System.out.println("Querying for all recipes");
         List<Recipe> results = jdbcTemplate.query(
                 SQL,
