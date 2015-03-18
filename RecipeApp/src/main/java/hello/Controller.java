@@ -234,7 +234,7 @@ public class Controller {
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image, rs.getDouble("avg_rating"));
+                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image,0.0);// rs.getDouble("avg_rating"));
                 	return r;
             }
           });
@@ -374,15 +374,15 @@ public class Controller {
 				+ " group by recipe_id"
 				+ " ) ni"
 				+ " on s.recipe_id = ni.recipe_id"
-				+"left join ("
-				+ "  select recipe_id, rating"
-				+ "  from RecipeApp.ratings"
-				+ "	) ra"
-				+ "	on s.recipe_id = ra.recipe_id"
 				+ " group by recipe_name"
 				+ " order by match_rate desc, matching, recipe_name"
 				+ "	) m"
 				+ " inner join RecipeApp.recipe_with_ingredients rwi on m.recipe_id = rwi.recipe_id";
+				//+ " left join ("
+				//+ "	  select recipe_id, rating"
+				//+ "		  from ratings"
+				//+ "		) ra"
+				//+ "	on m.recipe_id = ra.recipe_id";
 	    	
         List<Recipe> results = jdbcTemplate.query(
                 sql,
@@ -390,8 +390,10 @@ public class Controller {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
+                    	Double rating = 0.0;
+                    	//rating =  rs.getDouble("avg_rating");
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rs.getDouble("avg_rating"));
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L,rating);
                     	r.setMatch(rs.getFloat("match_rate"));                    	
                     	r.contains = true;
                         return r;
@@ -449,6 +451,7 @@ public class Controller {
     			+ ") ra"
     			+ " on s.recipe_id = ra.recipe_id"
     			+ " group by s.recipe_id";
+    	SQL = "SELECT * from RecipeApp.recipe_with_ingredients";
         System.out.println("Querying for all recipes");
         List<Recipe> results = jdbcTemplate.query(
                 SQL,
@@ -456,9 +459,10 @@ public class Controller {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
-                    	
+                    	Double rating = 0.0;
+                    	//rating =  rs.getDouble("avg_rating");
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rs.getDouble("avg_rating"));
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rating);
                     }
                     
                 });   
