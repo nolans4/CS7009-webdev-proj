@@ -142,7 +142,7 @@ public class Controller {
                  public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                  	 Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	                  	 
                  	 return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                             rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
+                             rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L,0);
              }
            });
     	
@@ -209,9 +209,10 @@ public class Controller {
     public ResponseEntity<String> fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
     	
-     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
+     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id, AVG(ra.rating) AS avg_rating"
      		+ " FROM RecipeApp.full_recipe AS r"
      		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
+     		+ " LEFT JOIN RecipeApp.ratings AS ra ON r.recipe_id = ra.recipe_id "
      		+ " where r.recipe_id = ?";
     	
      String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
@@ -233,7 +234,7 @@ public class Controller {
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image);
+                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image, rs.getDouble("avg_rating"));
                 	return r;
             }
           });
@@ -349,7 +350,7 @@ public class Controller {
     	
 		String sql = "select * from"
 				+ "	("
-				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate"
+				+ " select  s.recipe_id, s.recipe_name, s.description, count(s.ingredient_name) as matching, ni.number_ingredients, count(s.ingredient_name) / ni.number_ingredients as match_rate, AVG(ra.rating) AS avg_rating"
 				+ "    from"
 				+ "    ("
 				+ "     select DISTINCT r.recipe_id, r.recipe_name, r.description, i.ingredient_name"
@@ -373,6 +374,11 @@ public class Controller {
 				+ " group by recipe_id"
 				+ " ) ni"
 				+ " on s.recipe_id = ni.recipe_id"
+				+"left join ("
+				+ "  select recipe_id, rating"
+				+ "  from RecipeApp.ratings"
+				+ "	) ra"
+				+ "	on s.recipe_id = ra.recipe_id"
 				+ " group by recipe_name"
 				+ " order by match_rate desc, matching, recipe_name"
 				+ "	) m"
@@ -385,7 +391,7 @@ public class Controller {
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),"");
                     	Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rs.getDouble("avg_rating"));
                     	r.setMatch(rs.getFloat("match_rate"));                    	
                     	r.contains = true;
                         return r;
@@ -431,17 +437,29 @@ public class Controller {
     @RequestMapping("/recipes")
     public ResponseEntity<String> allRecipes(){
     	JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    	
+    	String SQL = "create view all_recipes as "
+    			+ "(SELECT s.recipe_id, s.recipe_name, s.description, s.cooking_time, s.ingredient_name, s.amount, s.added_by, AVG(ra.rating) AS avg_rating from "
+    			+ "("
+    			+ "    select *"
+    			+ "    from recipe_with_ingredients r"
+    			+ "    order by recipe_name"
+    			+ "    ) s"
+    			+ " left join ("
+    			+ "  select recipe_id, rating"
+    			+ "  from ratings"
+    			+ ") ra"
+    			+ " on s.recipe_id = ra.recipe_id"
+    			+ " group by s.recipe_id)";
         System.out.println("Querying for all recipes");
         List<Recipe> results = jdbcTemplate.query(
-                "select * from RecipeApp.recipe_with_ingredients order by recipe_id",
+                SQL,
                 new RowMapper<Recipe>() {
                     @Override
                     public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
                     	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));
                     	
                         return new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L);
+                                rs.getString("description"), rs.getString("cooking_time"),i,null,rs.getString("added_by"),-1L, rs.getDouble("avg_rating"));
                     }
                     
                 });   
@@ -467,6 +485,51 @@ public class Controller {
     public String initial(){ 	
     	return new String("Recipe application!");
     }
+    
+    /*
+     * Insert a new rating
+     */
+    @RequestMapping(value ="/sendRating", method = RequestMethod.POST,headers ={"Accept=application/plain-text"})
+    @ResponseBody
+    public ResponseEntity<String> sendNewRating(@RequestBody String rating){
+    	ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+    	mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+    	mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+    	mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+    	mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);    
+
+    	Rating r=null;
+		try {
+			r = mapper.readValue(rating, Rating.class);
+			//System.out.println("Recipe "+r.toString());
+		} catch (JsonParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+		} catch (JsonMappingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+		}    
+		SimpleJdbcCall ratingCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_rating")
+				.withoutProcedureColumnMetaDataAccess()
+				.declareParameters(new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("added_by", Types.VARCHAR), new SqlParameter("rating", Types.DOUBLE));
+
+		SqlParameterSource rating_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
+        .addValue("recipe_id", r.getRecipeId()).addValue("descr", r.getDescription()).addValue("added_by", r.getAddedBy()).addValue("rating", r.getRating());
+
+		ratingCall.execute(rating_in);
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(r.toString(),responseHeaders, HttpStatus.OK);
+    	return res; 		
+		
+    }
+    	
     
     /*
      * Insert a new recipe
@@ -621,9 +684,10 @@ public class Controller {
     	 String random_id_sql = "select recipe_id from RecipeApp.recipes order by rand() limit 1";
     	 final Long recipe_id=jdbcTemplate.queryForObject(random_id_sql, Long.class);
     	 
-         String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"
+         String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id, AVG(ra.rating) AS avg_rating"
           		+ " FROM RecipeApp.full_recipe AS r"
           		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
+          		+ " LEFT JOIN RecipeApp.ratings AS ra ON r.recipe_id = ra.recipe_id"
           		+ " where r.recipe_id = ?";
          	
       //String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
@@ -642,7 +706,7 @@ public class Controller {
                  	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                  	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                      Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                             rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image);
+                             rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image, rs.getDouble("avg_rating"));
                  	return r;
              }
            });

@@ -16,6 +16,7 @@ public class Recipe implements Comparable<Recipe> {
     private List<Long> imageids;
     private String addedby;
     private float match;
+    private double avgRating;
 
     public boolean contains, hasSteps, hasIngredients, hasImages;
 
@@ -36,7 +37,7 @@ public class Recipe implements Comparable<Recipe> {
 
     }
     
-    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s, String addedby, Long image_id) {
+    public Recipe(long id, String title, String description, String time, Ingredient i, RecipeStep s, String addedby, Long image_id, double avg_rating) {
         this.id = id;
         this.time = time;
         this.description = description;
@@ -59,6 +60,7 @@ public class Recipe implements Comparable<Recipe> {
         
 
         this.addedby = addedby;
+        this.avgRating = avg_rating;
         match =-1;
         contains = false;
 
@@ -224,6 +226,14 @@ public class Recipe implements Comparable<Recipe> {
 
 	public void addImageid(Long next_iid) {
 		this.imageids.add(next_iid);		
+	}
+
+	public double getAvgRating() {
+		return avgRating;
+	}
+
+	public void setAvgRating(double avgRating) {
+		this.avgRating = avgRating;
 	}
 
 }
