@@ -2,11 +2,11 @@ package hello;
 
 public class Rating {
 	private long recipeId;
-	private String addedBy;
+	private long addedBy;
 	private String description;
 	private double rating;
 	
-	public Rating(long recipeId, String addedBy, String description, double rating){
+	public Rating(long recipeId, long addedBy, String description, double rating){
 		this.recipeId = recipeId;
 		this.addedBy = addedBy;
 		this.description = description;
@@ -20,10 +20,10 @@ public class Rating {
 	public void setRecipeId(long recipeId) {
 		this.recipeId = recipeId;
 	}
-	public String getAddedBy() {
+	public long getAddedBy() {
 		return addedBy;
 	}
-	public void setAddedBy(String addedBy) {
+	public void setAddedBy(long addedBy) {
 		this.addedBy = addedBy;
 	}
 	public String getDescription() {

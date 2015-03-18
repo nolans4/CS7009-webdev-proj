@@ -172,7 +172,7 @@ public class Controller {
              new RowMapper<Rating>() {
                  @Override
                  public Rating mapRow(ResultSet rs, int rowNum) throws SQLException {
-                 	 return new Rating(rs.getLong("recipe_id"), rs.getString("rated_by"),
+                 	 return new Rating(rs.getLong("recipe_id"), rs.getLong("rated_by"),
                              rs.getString("description"), rs.getDouble("rating"));
              }
            });
