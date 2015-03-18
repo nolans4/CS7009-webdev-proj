@@ -213,8 +213,6 @@ public class Controller {
      		+ " FROM RecipeApp.full_recipe AS r"
      		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
      		+ " where r.recipe_id = ?";
-    	
-     String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
    	 
    	 
@@ -233,7 +231,7 @@ public class Controller {
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
-                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image,0.0);// rs.getDouble("avg_rating"));
+                            rs.getString("description"), rs.getString("cooking_time"),i,s,rs.getString("added_by"),image, rs.getDouble("avg_rating"));
                 	return r;
             }
           });
