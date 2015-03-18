@@ -6,6 +6,14 @@ public class Rating {
 	private String description;
 	private double rating;
 	
+	public Rating(){
+		recipeId = 0;
+		addedBy = 0;
+		description = "";
+		rating = 0;
+		
+	}
+	
 	public Rating(long recipeId, long addedBy, String description, double rating){
 		this.recipeId = recipeId;
 		this.addedBy = addedBy;
