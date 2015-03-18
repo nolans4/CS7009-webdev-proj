@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -145,12 +146,61 @@ public class Controller {
              }
            });
     	
+    	if (result.size()==0){
+        	ResponseEntity<String> res = new ResponseEntity<String>("No content", HttpStatus.NO_CONTENT);
+        	return res; 	       		 		
+    	}
+    	 
+    	 
     	List<Recipe> newList = condenseRecipesIngredients(result);
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
     	ResponseEntity<String> res = new ResponseEntity<String>(newList.toString(),responseHeaders, HttpStatus.OK);
     	return res; 	    	
     }
+    
+    @RequestMapping("/ratings")
+    public ResponseEntity<String> getRatings(@RequestParam(value="id", defaultValue="0") final long id) {
+    	//Get recipe
+    	 JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+    	 List<Rating> result = jdbcTemplate.query("select * from RecipeApp.ratings where recipe_id = ?",
+    	   new PreparedStatementSetter() {
+             public void setValues(PreparedStatement ps) throws SQLException {
+                 ps.setLong(1, id);
+             }
+    	   },
+             new RowMapper<Rating>() {
+                 @Override
+                 public Rating mapRow(ResultSet rs, int rowNum) throws SQLException {
+                 	 return new Rating(rs.getLong("recipe_id"), rs.getString("rated_by"),
+                             rs.getString("description"), rs.getDouble("rating"));
+             }
+           });
+    	
+    	if (result.size()==0){
+        	ResponseEntity<String> res = new ResponseEntity<String>("No content", HttpStatus.NO_CONTENT);
+        	return res; 	       		 		
+    	}
+		ObjectMapper mapper = new ObjectMapper(); // create once, reuse
+		mapper.enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
+		mapper.enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+		mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);    	
+    	
+    	String resultString="";
+    	try {
+    	resultString = mapper.writeValueAsString(result);
+     	} catch (JsonProcessingException e) {
+     		// TODO Auto-generated catch block
+     		e.printStackTrace();
+     	}  	    	
+    	
+    	 
+    	HttpHeaders responseHeaders = new HttpHeaders();
+    	responseHeaders.add("Access-Control-Allow-Origin", "*");
+    	ResponseEntity<String> res = new ResponseEntity<String>(resultString,responseHeaders, HttpStatus.OK);
+    	return res; 	    	
+    }    
     
     /*
      * Retrieve full recipe by id
@@ -176,7 +226,7 @@ public class Controller {
 	   	   },
             new RowMapper<Recipe>() {
                 @Override
-                public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException {
+                public Recipe mapRow(ResultSet rs, int rowNum) throws SQLException, DataAccessException {
                 	//check if image id is null
                 	Long image = (Long)rs.getObject("image_id");
                 	if(image==null) image = -1L;
@@ -187,7 +237,7 @@ public class Controller {
                 	return r;
             }
           });
-   	if(result.size()<0){
+   	if(result.size()==0){
    		return new ResponseEntity<String>("Recipe with "+id+" does not exist",HttpStatus.NO_CONTENT);  		
    	}
 
