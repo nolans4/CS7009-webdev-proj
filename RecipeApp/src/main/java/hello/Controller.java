@@ -209,10 +209,9 @@ public class Controller {
     public ResponseEntity<String> fullRecipe(@RequestParam(value="id", defaultValue="0") final long id){
     	//Get recipe
     	
-     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id"//, AVG(ra.rating) AS avg_rating"
+     String sql = "SELECT r.recipe_id, r.recipe_name, r.description, r.cooking_time, r.added_by, r.ingredient_name, r.amount, r.step, r.step_description, ri.image_id, r.avg_rating"
      		+ " FROM RecipeApp.full_recipe AS r"
      		+ " LEFT JOIN RecipeApp.recipe_images AS ri ON r.recipe_id = ri.recipe_id"
-     		//+ " LEFT JOIN RecipeApp.ratings AS ra ON r.recipe_id = ra.recipe_id "
      		+ " where r.recipe_id = ?";
     	
      String other = "select * from RecipeApp.full_recipe where recipe_id = ? order by recipe_id";
@@ -232,7 +231,7 @@ public class Controller {
                 	Long image = (Long)rs.getObject("image_id");
                 	if(image==null) image = -1L;
                 	Double rating = 0.0;
-                	//rating = rs.getDouble("avg_rating");
+                	rating = rs.getDouble("avg_rating");
                 	Ingredient i = new Ingredient(0,rs.getString("ingredient_name"),rs.getString("amount"));             	 
                 	RecipeStep s = new RecipeStep(rs.getLong("recipe_id"),rs.getInt("step"),rs.getString("step_description"));             	 
                     Recipe r = new Recipe(rs.getLong("recipe_id"), rs.getString("recipe_name"),
