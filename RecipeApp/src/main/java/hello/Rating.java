@@ -5,6 +5,7 @@ public class Rating {
 	private long addedBy;
 	private String description;
 	private double rating;
+	private String name;
 	
 	public Rating(){
 		recipeId = 0;
@@ -14,11 +15,12 @@ public class Rating {
 		
 	}
 	
-	public Rating(long recipeId, long addedBy, String description, double rating){
+	public Rating(long recipeId, long addedBy, String description, double rating, String name){
 		this.recipeId = recipeId;
 		this.addedBy = addedBy;
 		this.description = description;
 		this.rating = rating;		
+		this.name = name;
 	}
 	
 	
@@ -54,6 +56,14 @@ public class Rating {
 				+ "	\"description\": \""+description+"\","
 						+ "	\"rating\": "+rating
 						+ "	}";
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 }
