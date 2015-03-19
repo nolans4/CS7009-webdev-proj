@@ -559,10 +559,10 @@ public class Controller {
 		}    
 		SimpleJdbcCall ratingCall = new SimpleJdbcCall(dataSource).withCatalogName("RecipeApp").withProcedureName("new_rating")
 				.withoutProcedureColumnMetaDataAccess()
-				.declareParameters(new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("added_by", Types.VARCHAR), new SqlParameter("rating", Types.DOUBLE), new SqlOutParameter("avg_rating", Types.DOUBLE));
+				.declareParameters(new SqlParameter("recipe_id", Types.BIGINT), new SqlParameter("descr", Types.VARCHAR), new SqlParameter("added_by", Types.VARCHAR), new SqlParameter("rating", Types.DOUBLE),new SqlParameter("name",Types.VARCHAR),new SqlOutParameter("avg_rating", Types.DOUBLE));
 
 		SqlParameterSource rating_in = new MapSqlParameterSource()//addValues(r.getTitle(),r.getDescription(), r.getTime());
-        .addValue("recipe_id", r.getRecipeId()).addValue("descr", r.getDescription()).addValue("added_by", r.getAddedBy()).addValue("rating", r.getRating());
+        .addValue("recipe_id", r.getRecipeId()).addValue("descr", r.getDescription()).addValue("added_by", r.getAddedBy()).addValue("rating", r.getRating()).addValue("name", r.getName());
 
 		Map<String, Object> out= ratingCall.execute(rating_in);  
 		Double avg = (Double) out.get("avg_rating");
