@@ -241,9 +241,12 @@ public class Controller {
 		mapper.enable(JsonGenerator.Feature.ESCAPE_NON_ASCII);
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);    	
     	
+		System.out.println("\n\n\nRating added_by id: "+result.get(0).getAddedBy());
+		
+		
     	String resultString="";
     	try {
-    	resultString = mapper.writeValueAsString(result);
+    		resultString = mapper.writeValueAsString(result);
      	} catch (JsonProcessingException e) {
      		// TODO Auto-generated catch block
      		e.printStackTrace();
