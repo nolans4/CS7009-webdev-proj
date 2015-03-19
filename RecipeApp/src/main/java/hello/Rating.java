@@ -54,7 +54,8 @@ public class Rating {
 				+ "	\"recipeId\": "+recipeId+","
 				+ "	\"addedBy\": \""+addedBy+"\","
 				+ "	\"description\": \""+description+"\","
-						+ "	\"rating\": "+rating
+						+ "	\"rating\": "+rating+","
+						+ " \"name\": \""+name+"\","
 						+ "	}";
 	}
 
