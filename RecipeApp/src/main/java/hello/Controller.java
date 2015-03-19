@@ -233,7 +233,9 @@ public class Controller {
     	
     	if (result.size()==0){
     		System.out.println("No reviews!");
-        	ResponseEntity<String> res = new ResponseEntity<String>("[]", HttpStatus.OK);
+        	HttpHeaders responseHeaders = new HttpHeaders();
+        	responseHeaders.add("Access-Control-Allow-Origin", "*");
+        	ResponseEntity<String> res = new ResponseEntity<String>("[]",responseHeaders, HttpStatus.OK);
         	return res; 	       		 		
     	}
 		ObjectMapper mapper = new ObjectMapper(); // create once, reuse
