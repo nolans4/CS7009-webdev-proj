@@ -232,7 +232,7 @@ public class Controller {
            });
     	
     	if (result.size()==0){
-        	ResponseEntity<String> res = new ResponseEntity<String>("No content", HttpStatus.NO_CONTENT);
+        	ResponseEntity<String> res = new ResponseEntity<String>("[]", HttpStatus.OK);
         	return res; 	       		 		
     	}
 		ObjectMapper mapper = new ObjectMapper(); // create once, reuse
@@ -293,7 +293,7 @@ public class Controller {
             }
           });
    	if(result.size()==0){
-   		return new ResponseEntity<String>("Recipe with "+id+" does not exist",HttpStatus.NO_CONTENT);  		
+   		return new ResponseEntity<String>("Recipe with "+id+" does not exist",HttpStatus.OK);  		
    	}
 
    	 
