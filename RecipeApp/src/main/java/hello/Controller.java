@@ -255,7 +255,7 @@ public class Controller {
     	 
     	HttpHeaders responseHeaders = new HttpHeaders();
     	responseHeaders.add("Access-Control-Allow-Origin", "*");
-    	ResponseEntity<String> res = new ResponseEntity<String>(resultString,responseHeaders, HttpStatus.OK);
+    	ResponseEntity<String> res = new ResponseEntity<String>(result.toString(),responseHeaders, HttpStatus.OK);
     	return res; 	    	
     }    
     

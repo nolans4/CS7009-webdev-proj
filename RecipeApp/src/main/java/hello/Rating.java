@@ -47,4 +47,13 @@ public class Rating {
 		this.rating = rating;
 	}	
 	
+	public String toString(){
+		return "{"
+				+ "	recipeId: "+recipeId+","
+				+ "	addedBy: "+addedBy+","
+				+ "	description: \""+description+"\","
+						+ "	rating: "+rating
+						+ "	}";
+	}
+	
 }
