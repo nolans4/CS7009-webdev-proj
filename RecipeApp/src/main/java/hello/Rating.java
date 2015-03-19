@@ -55,7 +55,7 @@ public class Rating {
 				+ "	\"addedBy\": \""+addedBy+"\","
 				+ "	\"description\": \""+description+"\","
 						+ "	\"rating\": "+rating+","
-						+ " \"name\": \""+name+"\","
+						+ " \"name\": \""+name+"\""
 						+ "	}";
 	}
 
