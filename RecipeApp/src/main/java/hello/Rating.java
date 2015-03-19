@@ -49,10 +49,10 @@ public class Rating {
 	
 	public String toString(){
 		return "{"
-				+ "	recipeId: "+recipeId+","
-				+ "	addedBy: "+addedBy+","
-				+ "	description: \""+description+"\","
-						+ "	rating: "+rating
+				+ "	\"recipeId\": "+recipeId+","
+				+ "	\"addedBy\": "+addedBy+","
+				+ "	\"description\": \""+description+"\","
+						+ "	\"rating\": "+rating
 						+ "	}";
 	}
 	
