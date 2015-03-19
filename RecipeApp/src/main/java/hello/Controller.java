@@ -207,7 +207,7 @@ public class Controller {
       }
 	  	HttpHeaders responseHeaders = new HttpHeaders();
 	  	responseHeaders.add("Access-Control-Allow-Origin", "*");
-	  	ResponseEntity<String> resp = new ResponseEntity<String>(""+exists,responseHeaders, HttpStatus.OK);
+	  	ResponseEntity<String> resp = new ResponseEntity<String>("{\"value\": "+exists+" }",responseHeaders, HttpStatus.OK);
 	  	return resp;  	
     }
     
