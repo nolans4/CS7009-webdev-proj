@@ -232,6 +232,7 @@ public class Controller {
            });
     	
     	if (result.size()==0){
+    		System.out.println("No reviews!");
         	ResponseEntity<String> res = new ResponseEntity<String>("[]", HttpStatus.OK);
         	return res; 	       		 		
     	}
